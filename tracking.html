@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneHive | Live Tracking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        :root { --primary: #082347; --secondary: #FF9900; --success: #28a745; --danger: #ff4444; }
+        body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; overflow: hidden; background: #eee; }
+
+        .floating-logo { position: absolute; top: 20px; left: 20px; background: white; padding: 8px 15px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 1000; display: flex; align-items: center; gap: 8px; }
+        .logo-img { height: 25px; }
+        .logo-text { font-weight: 800; font-size: 16px; color: var(--primary); }
+
+        #map { height: 100vh; width: 100%; z-index: 1; }
+
+        .status-card { position: absolute; bottom: 0; left: 0; width: 100%; background: white; border-radius: 20px 20px 0 0; padding: 20px 20px; box-shadow: 0 -5px 30px rgba(0,0,0,0.15); z-index: 2000; box-sizing: border-box; transition: 0.3s; max-height: 80vh; overflow-y: auto; }
+        .card-help-btn { position: absolute; top: 20px; right: 20px; background: #f0f2f5; color: var(--primary); font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; cursor: pointer; border: 1px solid #ddd; display: flex; align-items: center; gap: 5px; }
+        
+        .searching-box { text-align: center; padding: 15px; }
+        .radar { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid var(--secondary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .pro-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .time-est { background: var(--primary); color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+        .pro-profile { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .pro-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #eee; }
+        .pro-info h3 { margin: 0; color: var(--primary); font-size: 16px; }
+        .rating { color: #FFD700; font-size: 11px; font-weight: bold; }
+
+        .bill-summary { background: #f8f9fa; padding: 12px; border-radius: 12px; border: 1px solid #e9ecef; margin-bottom: 15px; }
+        .bill-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; color: #555; }
+        .bill-row.discount-row { color: #28a745; font-weight: 600; }
+        .bill-row.total { border-top: 1px dashed #ccc; margin-top: 8px; padding-top: 8px; font-weight: 800; font-size: 15px; color: var(--primary); }
+
+        .otp-box { background: #e3f2fd; border: 1px dashed var(--primary); padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 15px; color: var(--primary); font-size: 14px; font-weight: 600; display: none; }
+        .otp-code { font-weight: 800; font-size: 20px; letter-spacing: 2px; color: var(--secondary); margin-left: 10px; }
+
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .action-link { border: 1px solid #eee; background: white; padding: 10px; border-radius: 12px; font-size: 11px; font-weight: 600; color: #333; display: flex; flex-direction: column; align-items: center; gap: 5px; text-decoration: none; transition: 0.2s; cursor: pointer; }
+        .call-icon { color: var(--secondary); font-size: 18px; }
+        .msg-icon { color: #25D366; font-size: 18px; }
+        .cancel-icon { color: red; font-size: 18px; }
+        .timer-text { font-size: 10px; color: red; font-weight: bold; }
+        
+        .action-link.disabled { opacity: 0.5; cursor: not-allowed; background: #f5f5f5; border-color: #ddd; color: #aaa; pointer-events: none; }
+        .action-link.disabled .call-icon, .action-link.disabled .msg-icon { color: #aaa; }
+
+        .action-link.late-fee { background: #f9f9f9; color: #777; border-color: #ddd; opacity: 0.8; }
+        .action-link.late-fee .cancel-icon { color: #aaa; }
+        .action-link.late-fee .timer-text { color: var(--danger); font-weight:800; }
+        
+        .done-btn { width: 100%; background: #ccc; color: white; border: none; padding: 15px; border-radius: 50px; font-size: 15px; font-weight: bold; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
+        .done-btn.ringing { background: linear-gradient(135deg, #082347, #0a3d82); cursor: pointer; animation: softRipple 2s infinite; }
+        @keyframes softRipple { 0% { box-shadow: 0 0 0 0 rgba(8, 35, 71, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(8, 35, 71, 0); } 100% { box-shadow: 0 0 0 0 rgba(8, 35, 71, 0); } }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .modal-box { position: relative; background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; animation: popUp 0.3s ease-in-out; }
+        @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .close-icon { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #aaa; cursor: pointer; transition: 0.3s; }
+
+        .chat-modal { background: #E5DDD5; width: 100%; height: 100%; max-width: 100%; display: flex; flex-direction: column; border-radius: 0; }
+        @media(min-width: 768px) { .chat-modal { width: 400px; height: 600px; border-radius: 20px; } }
+        .chat-header { background: #075E54; color: white; padding: 10px 15px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .chat-body { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: soft-light; }
+        .msg { max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 14px; position: relative; line-height: 1.4; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .msg-in { align-self: flex-start; background: white; border-radius: 0 10px 10px 10px; }
+        .msg-out { align-self: flex-end; background: #DCF8C6; border-radius: 10px 0 10px 10px; }
+        .chat-footer { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .chat-input { flex: 1; padding: 12px; border-radius: 20px; border: none; outline: none; font-size: 15px; }
+        .chat-send { background: #075E54; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; }
+
+        .stars { font-size: 32px; color: #ddd; margin: 15px 0; cursor: pointer; }
+        .stars i.active { color: #FF9900; }
+        .review-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 20px; box-sizing: border-box; }
+        .submit-rate { width: 100%; padding: 14px; background: var(--secondary); color: white; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; }
+        
+        .pay-btn { flex: 1; padding: 10px; border: 1px solid #ddd; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; color: #555; transition: 0.2s; }
+        .pay-btn.selected { border-color: var(--secondary); background: #FFF5E6; color: var(--secondary); box-shadow: 0 0 0 1px var(--secondary); }
+
+        .support-btn { display: flex; align-items: center; gap: 12px; background: #f8f9fa; padding: 12px; border-radius: 10px; cursor: pointer; color: #333; font-weight: 600; border: 1px solid #eee; margin-bottom: 10px; transition: 0.2s; }
+        
+        /* Marker Styles */
+        .marker-home { font-size: 32px; color: #082347; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.4)); }
+        .marker-bike { font-size: 36px; color: #FF9900; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.4)); transition: transform 0.5s ease-in-out; }
+        
+        /* Accuracy indicator */
+        .accuracy-badge { position: absolute; top: 70px; left: 20px; background: white; padding: 5px 10px; border-radius: 15px; font-size: 11px; font-weight: 600; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: none; }
+        .accuracy-good { color: #28a745; }
+        .accuracy-poor { color: #ff4444; }
+        
+        /* Route info */
+        .route-info { position: absolute; top: 100px; left: 20px; background: white; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 600; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: none; }
+    </style>
+</head>
+<body onload="initMap()">
+
+    <!-- FLOATING NAVIGATION -->
+    <div style="position: absolute; top: 20px; left: 20px; right: 20px; z-index: 1000; display: flex; justify-content: space-between; align-items: center;">
+        <a href="index.html" style="background: white; padding: 8px 15px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px; text-decoration: none;">
+            <img src="img.jpg" alt="Logo" style="height: 25px;">
+            <span style="font-weight: 800; font-size: 16px; color: #082347;">OneHive</span>
+        </a>
+        <div style="display: flex; gap: 10px;">
+            <a href="login.html" style="background: #FF8800; color: white; padding: 8px 20px; border-radius: 20px; font-weight: 600; font-size: 13px; text-decoration: none; box-shadow: 0 4px 10px rgba(255,136,0,0.3);">Login</a>
+        </div>
+    </div>
+
+    <!-- Accuracy Badge -->
+    <div id="accuracyBadge" class="accuracy-badge">
+        <i class="fas fa-crosshairs"></i> <span id="accuracyText">GPS: --</span>
+    </div>
+    
+    <!-- Route Info -->
+    <div id="routeInfo" class="route-info">
+        <i class="fas fa-route" style="color: var(--secondary);"></i> 
+        <span id="routeDistance">--</span> | <span id="routeDuration">--</span>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="bottomSheet" class="status-card">
+        <div class="card-help-btn" onclick="openSupportMenu()">Need Help? <i class="far fa-question-circle"></i></div>
+
+        <div id="searchingState" class="searching-box">
+            <div class="radar"></div>
+            <h3 style="margin:0; color:var(--primary); font-size:18px;">Finding Expert...</h3>
+            <p style="margin:5px 0 0; font-size:13px; color:#777;">Scanning nearby professionals...</p>
+        </div>
+
+        <div id="foundState" style="display:none;">
+            <div class="pro-header"><div class="time-est" id="timeBadge"><i class="fas fa-clock"></i> <span id="timeText">Waiting (2m)</span></div></div>
+            <div class="pro-profile">
+                <img src="https://img.freepik.com/free-photo/smiling-young-male-maintenance-professional-standing-with-arms-crossed_1098-17757.jpg" class="pro-img">
+                <div class="pro-info">
+                    <h3 id="proName">Rajesh Kumar</h3>
+                    <p style="font-weight:bold; color:var(--secondary); margin:0; font-size:12px;">Verified Partner</p>
+                    <div class="rating"><i class="fas fa-star"></i> 4.8</div>
+                </div>
+            </div>
+            
+            <div class="bill-summary">
+                <div class="bill-row"><span>Expert Visiting & Labor:</span><span id="displayLabor">₹0</span></div>
+                <div class="bill-row"><span>Estimated Material Cost:</span><span id="displayMaterial">₹0</span></div>
+                <div class="bill-row discount-row"><span>Discount (OneHive):</span><span id="displayDiscount">- ₹0</span></div>
+                <div class="bill-row total"><span>Total Estimate:</span><span id="displayTotal">₹0</span></div>
+                <div class="bill-row" style="margin-top:6px; border-top:1px solid #eee; padding-top:6px;">
+                    <span style="font-weight:bold;">Payment:</span>
+                    <span id="paymentStatusDisplay" style="font-weight:bold;">--</span>
+                </div>
+            </div>
+
+            <div class="btn-grid" id="actionGrid">
+                <a href="tel:+919876543210" id="callBtn" class="action-link disabled"><i class="fas fa-phone-alt call-icon"></i> Call</a>
+                <a href="https://wa.me/919876543210" id="chatBtn" target="_blank" class="action-link disabled"><i class="fab fa-whatsapp msg-icon"></i> Chat</a>
+                
+                <div id="cancelBtnWrapper" class="action-link" onclick="cancelBooking()">
+                    <i class="fas fa-times-circle cancel-icon"></i> 
+                    <span id="cancelLabel">Cancel</span>
+                    <span id="cancelTimer" class="timer-text">Accepted 2m</span>
+                </div>
+            </div>
+
+            <div id="otpContainer" class="otp-box">
+                Share OTP to Complete Work: <span class="otp-code" id="otpDisplay">----</span>
+            </div>
+
+            <button id="completeBtn" class="done-btn" onclick="completeWork()" disabled><i class="fas fa-lock" id="btnIcon"></i> &nbsp; Work in Progress...</button>
+        </div>
+    </div>
+
+    <div id="cancellationModal" class="modal-overlay">
+        <div class="modal-box">
+            <span class="close-icon" onclick="closeModal('cancellationModal')">&times;</span>
+            <h2 style="color:var(--danger); margin-top:0;">Cancel Booking</h2>
+            <p style="font-size:14px; color:#555; margin-bottom:15px;">Cancellation time over. A late fee of <b>₹50</b> applies.</p>
+            
+            <select id="cancelReason" class="review-input" style="background:#fff;">
+                <option value="" disabled selected>Reason for Cancellation</option>
+                <option value="changed_mind">Changed my mind</option>
+                <option value="expert_late">Expert is too late</option>
+                <option value="booked_mistake">Booked by mistake</option>
+                <option value="other">Other</option>
+            </select>
+
+            <div style="text-align:left; margin-bottom:10px; font-size:13px; font-weight:600; color:#555;">Payment Method for Fee:</div>
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                <button class="pay-btn selected" onclick="selectPay(this)">UPI</button>
+                <button class="pay-btn" onclick="selectPay(this)">Wallet</button>
+                <button class="pay-btn" onclick="selectPay(this)">Card</button>
+            </div>
+            <button class="submit-rate" style="background:var(--danger);" onclick="processCancellation()">Pay ₹50 & Cancel</button>
+        </div>
+    </div>
+
+    <div id="supportMenuModal" class="modal-overlay">
+        <div class="modal-box" style="text-align: left;">
+            <span class="close-icon" onclick="closeModal('supportMenuModal')">&times;</span>
+            <h2 style="color:var(--primary); margin-top:0;">Customer Support</h2>
+            <div class="support-btn" onclick="alert('Calling Support Team...')"><i class="fas fa-headset"></i> Call Support Team</div>
+            <div class="support-btn" onclick="openChatSupport()"><i class="fab fa-whatsapp" style="color:#25D366"></i> Chat with Agent</div>
+        </div>
+    </div>
+
+    <div id="liveChatModal" class="modal-overlay">
+        <div class="chat-modal">
+            <div class="chat-header">
+                <i class="fas fa-arrow-left" style="font-size:20px; cursor:pointer;" onclick="closeModal('liveChatModal')"></i>
+                <div class="chat-info"><h4 id="agentName">Support Team</h4><p id="agentStatus">Online</p></div>
+            </div>
+            <div class="chat-body" id="chatContainer"></div>
+            <div class="chat-footer">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Type a message..." onkeypress="handleEnter(event)">
+                <button class="chat-send" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ratingModal" class="modal-overlay">
+        <div class="modal-box">
+            <span class="close-icon" onclick="closeModal('ratingModal')">&times;</span>
+            <h2 style="color:var(--primary); margin-top:0;">Feedback</h2>
+            <p style="font-size:14px; color:#666; margin-top:-10px;">Rate your experience</p>
+            <div class="stars" id="starContainer">
+                <i class="fas fa-star" onclick="rate(1)"></i><i class="fas fa-star" onclick="rate(2)"></i>
+                <i class="fas fa-star" onclick="rate(3)"></i><i class="fas fa-star" onclick="rate(4)"></i>
+                <i class="fas fa-star" onclick="rate(5)"></i>
+            </div>
+            <textarea class="review-input" rows="3" placeholder="Write feedback..."></textarea>
+            <button class="submit-rate" onclick="submitReview()">Submit Feedback</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // ==================== IMPROVED MAP TRACKING SYSTEM ====================
+        
+        let map, userMarker, proMarker, routePolyline;
+        
+        // City coordinates with more locations
+        const cityCoords = { 
+            "Agra": [27.1767, 78.0081], 
+            "Delhi": [28.7041, 77.1025], 
+            "Jaipur": [26.9124, 75.7873], 
+            "Mumbai": [19.0760, 72.8777],
+            "Etawah": [26.7685, 79.0243]
+        };
+        
+        // State/District data for India
+        const stateDistrictData = {
+            "Andhra Pradesh": ["Visakhapatnam", "Vijayawada"],
+            "Delhi": ["Central Delhi", "New Delhi"],
+            "Uttar Pradesh": ["Agra", "Lucknow", "Varanasi", "Etawah", "Kanpur"],
+            "Maharashtra": ["Mumbai", "Pune"]
+        };
+        
+        let storedCity = localStorage.getItem('currentCity') || "Agra";
+        let matchedCity = Object.keys(cityCoords).find(city => storedCity.includes(city)) || "Agra";
+        let endCoords = cityCoords[matchedCity]; 
+        let startCoords = [endCoords[0] + 0.008, endCoords[1] + 0.008]; 
+        let chatInitialized = false;
+        
+        // Tracking state
+        let currentAccuracy = 0;
+        let watchPositionId = null;
+        let workerPosition = null;
+        let routeGeometry = null;
+        
+        // OSRM Routing API (free, open-source)
+        const OSRM_API = 'https://router.project-osrm.org/route/v1/driving';
+        
+        // ==================== 1. HIGH ACCURACY LOCATION DETECTION ====================
+        
+        function initMap() {
+            // Initialize map
+            map = L.map('map', { 
+                zoomControl: false,
+                zoomAnimation: true,
+                fadeAnimation: true
+            }).setView(endCoords, 15);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            // Create custom icons
+            const userIcon = L.divIcon({ 
+                html: '<i class="fas fa-home marker-home"></i>', 
+                className: 'd', 
+                iconSize: [32, 32], 
+                iconAnchor: [16, 32] 
+            });
+            
+            const proIcon = L.divIcon({ 
+                html: '<i class="fas fa-motorcycle marker-bike" id="bikeIcon"></i>', 
+                className: 'd', 
+                iconSize: [36, 36], 
+                iconAnchor: [18, 36] 
+            });
+            
+            // Add user marker
+            userMarker = L.marker(endCoords, {
+                icon: userIcon,
+                draggable: true
+            }).addTo(map).bindPopup(`<b>My Location</b>`);
+            
+            // Enable draggable marker for manual correction
+            userMarker.on('dragend', function(event) {
+                const marker = event.target;
+                const position = marker.getLatLng();
+                endCoords = [position.lat, position.lng];
+                localStorage.setItem('currentCity', `${position.lat},${position.lng}`);
+                // Recalculate route when marker is moved
+                if (workerPosition && routePolyline) {
+                    calculateRoute(workerPosition, endCoords);
+                }
+            });
+
+            // Try to get high-accuracy user location
+            getHighAccuracyLocation();
+            
+            // Setup simulation
+            setupSimulation(proIcon);
+        }
+        
+        // ==================== HIGH ACCURACY GEOLOCATION ====================
+        
+        function getHighAccuracyLocation() {
+            if (!navigator.geolocation) {
+                console.log("Geolocation not supported");
+                return;
+            }
+            
+            // Show accuracy badge
+            document.getElementById('accuracyBadge').style.display = 'block';
+            updateAccuracyDisplay('Acquiring GPS...', 'poor');
+            
+            // First, try high accuracy
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    handleLocationSuccess(position);
+                },
+                (error) => {
+                    handleLocationError(error);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+            );
+            
+            // Also start watching for continuous refinement
+            watchPositionId = navigator.geolocation.watchPosition(
+                (position) => {
+                    handleLocationSuccess(position);
+                },
+                (error) => {
+                    console.log("Watch error:", error.message);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 5000
+                }
+            );
+        }
+        
+        function handleLocationSuccess(position) {
+            const accuracy = position.coords.accuracy;
+            currentAccuracy = accuracy;
+            
+            // Update accuracy display
+            if (accuracy <= 10) {
+                updateAccuracyDisplay(`GPS: Excellent (${Math.round(accuracy)}m)`, 'good');
+            } else if (accuracy <= 50) {
+                updateAccuracyDisplay(`GPS: Good (${Math.round(accuracy)}m)`, 'good');
+            } else if (accuracy <= 100) {
+                updateAccuracyDisplay(`GPS: Fair (${Math.round(accuracy)}m)`, 'poor');
+            } else {
+                updateAccuracyDisplay(`GPS: Poor (${Math.round(accuracy)}m) - Tap marker to adjust`, 'poor');
+            }
+            
+            // Only update marker if accuracy is acceptable
+            if (accuracy <= 100) {
+                const newPos = [position.coords.latitude, position.coords.longitude];
+                
+                // Smooth marker movement
+                if (userMarker) {
+                    userMarker.setLatLng(newPos);
+                    // Only center map on first accurate fix
+                    if (!localStorage.getItem('locationInitialized')) {
+                        map.flyTo(newPos, 16, { duration: 1 });
+                        localStorage.setItem('locationInitialized', 'true');
+                    }
+                }
+                
+                endCoords = newPos;
+                localStorage.setItem('currentCity', `${newPos[0]},${newPos[1]}`);
+            }
+        }
+        
+        function handleLocationError(error) {
+            let errorMsg = 'Location error';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMsg = 'Location denied - Tap marker to set';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMsg = 'Location unavailable';
+                    break;
+                case error.TIMEOUT:
+                    errorMsg = 'Location timeout';
+                    break;
+            }
+            updateAccuracyDisplay(errorMsg, 'poor');
+            console.log("Geolocation error:", error.message);
+        }
+        
+        function updateAccuracyDisplay(text, quality) {
+            const badge = document.getElementById('accuracyBadge');
+            const textSpan = document.getElementById('accuracyText');
+            textSpan.innerText = text;
+            badge.className = 'accuracy-badge accuracy-' + quality;
+        }
+        
+        // ==================== 2. ROAD-BASED ROUTING WITH OSRM ====================
+        
+        async function calculateRoute(start, end) {
+            try {
+                // Use OSRM for road-based routing
+                const url = `${OSRM_API}/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.code === 'Ok' && data.routes.length > 0) {
+                    const route = data.routes[0];
+                    routeGeometry = route.geometry;
+                    
+                    // Remove old route
+                    if (routePolyline) {
+                        map.removeLayer(routePolyline);
+                    }
+                    
+                    // Draw new road-snapped polyline
+                    routePolyline = L.geoJSON(routeGeometry, {
+                        style: {
+                            color: '#FF9900',
+                            weight: 5,
+                            opacity: 0.8,
+                            dashArray: null
+                        }
+                    }).addTo(map);
+                    
+                    // Update route info
+                    const distanceKm = (route.distance / 1000).toFixed(1);
+                    const durationMin = Math.round(route.duration / 60);
+                    document.getElementById('routeDistance').innerText = `${distanceKm} km`;
+                    document.getElementById('routeDuration').innerText = `${durationMin} min`;
+                    document.getElementById('routeInfo').style.display = 'block';
+                    
+                    // Fit map to route
+                    map.fitBounds(routePolyline.getBounds(), { padding: [50, 50] });
+                    
+                    return true;
+                }
+            } catch (error) {
+                console.error("Route calculation error:", error);
+                // No fallback - show error if OSRM fails
+                console.error("Route calculation failed");
+            }
+            return false;
+        }
+        
+        // ==================== 3. SMOOTH MARKER MOVEMENT ====================
+        
+        function smoothMoveMarker(marker, fromPos, toPos, duration = 2000) {
+            const startTime = performance.now();
+            const startLat = fromPos[0];
+            const startLng = fromPos[1];
+            const endLat = toPos[0];
+            const endLng = toPos[1];
+            
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Ease-in-out function for smooth movement
+                const easeProgress = progress < 0.5 
+                    ? 2 * progress * progress 
+                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                
+                const currentLat = startLat + (endLat - startLat) * easeProgress;
+                const currentLng = startLng + (endLng - startLng) * easeProgress;
+                
+                marker.setLatLng([currentLat, currentLng]);
+                
+                // Rotate bike icon based on direction
+                const bearing = Math.atan2(
+                    (endLng - startLng) * Math.cos(endLat * Math.PI / 180),
+                    (endLat - startLat)
+                ) * 180 / Math.PI;
+                
+                const bikeIcon = document.getElementById('bikeIcon');
+                if (bikeIcon) {
+                    bikeIcon.style.transform = `rotate(${bearing}deg)`;
+                }
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // ==================== 4. DYNAMIC ROUTE RECALCULATION ====================
+        
+        let lastRecalculatePos = null;
+        const RECALCULATE_DISTANCE_THRESHOLD = 50; // meters
+        let recalculateTimeout = null;
+        
+        function updateWorkerPosition(newPos) {
+            workerPosition = newPos;
+            
+            if (proMarker) {
+                const oldPos = proMarker.getLatLng();
+                
+                // Smooth marker animation
+                smoothMoveMarker(proMarker, [oldPos.lat, oldPos.lng], newPos, 1500);
+                
+                // Check if we need to recalculate route
+                if (lastRecalculatePos) {
+                    const distance = getDistanceFromLatLonInMeters(
+                        lastRecalculatePos[0], lastRecalculatePos[1],
+                        newPos[0], newPos[1]
+                    );
+                    
+                    if (distance > RECALCULATE_DISTANCE_THRESHOLD) {
+                        // Throttle recalculation
+                        clearTimeout(recalculateTimeout);
+                        recalculateTimeout = setTimeout(() => {
+                            calculateRoute(newPos, endCoords);
+                            lastRecalculatePos = newPos;
+                        }, 2000);
+                    }
+                } else {
+                    lastRecalculatePos = newPos;
+                    calculateRoute(newPos, endCoords);
+                }
+            }
+        }
+        
+        // Haversine formula for distance calculation
+        function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // Earth's radius in meters
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+            
+            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            
+            return R * c;
+        }
+        
+        // ==================== SIMULATION (Testing) ====================
+        
+        function setupSimulation(proIcon) {
+            let payMode = localStorage.getItem('paymentMode') || 'Cash'; 
+            let labor = localStorage.getItem('billLabor') || 299;
+            let material = localStorage.getItem('billMaterial') || 0;
+            let discount = localStorage.getItem('billDiscount') || 50;
+            let total = localStorage.getItem('billTotal') || (parseInt(labor) + parseInt(material) - parseInt(discount));
+
+            document.getElementById('displayLabor').innerText = "₹" + labor;
+            document.getElementById('displayMaterial').innerText = "₹" + material;
+            document.getElementById('displayDiscount').innerText = "- ₹" + discount;
+            document.getElementById('displayTotal').innerText = "₹" + total;
+            let payElem = document.getElementById('paymentStatusDisplay');
+            payElem.innerHTML = payMode === 'Online' ? '<i class="fas fa-check-circle"></i> Paid Online' : '<i class="fas fa-wallet"></i> Cash on Delivery';
+            payElem.style.color = payMode === 'Online' ? '#28a745' : '#d35400';
+
+            let otp = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('otpDisplay').innerText = otp;
+
+            setTimeout(() => {
+                document.getElementById('searchingState').style.display = 'none';
+                document.getElementById('foundState').style.display = 'block';
+                
+                proMarker = L.marker(startCoords, {icon: proIcon}).addTo(map);
+                
+                // Calculate road-based route
+                calculateRoute(startCoords, endCoords);
+                
+                startCancelCountdown();
+            }, 2500);
+        }
+
+        let isLateCancel = false;
+
+        function startCancelCountdown() {
+            let timeLeft = 120; 
+            let timerElement = document.getElementById('cancelTimer');
+            document.getElementById('timeText').innerText = "Accepted (Wait 2m)";
+            
+            // DISABLE Call/Chat initially
+            document.getElementById('callBtn').classList.add('disabled');
+            document.getElementById('chatBtn').classList.add('disabled');
+            
+            let cancelInterval = setInterval(() => {
+                timeLeft--;
+                let min = Math.floor(timeLeft / 60); let sec = timeLeft % 60;
+                timerElement.innerText = `Accepted ${min}:${sec < 10 ? '0'+sec : sec}`;
+                
+                // Simulate worker movement every 10 seconds
+                if (timeLeft % 10 === 0 && timeLeft < 100) {
+                    simulateWorkerMovement();
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(cancelInterval);
+                    
+                    // ENABLE Call/Chat
+                    document.getElementById('callBtn').classList.remove('disabled');
+                    document.getElementById('chatBtn').classList.remove('disabled');
+                    
+                    enableLateCancel(); 
+                    startBikeMovement(); 
+                }
+            }, 1000); 
+        }
+        
+        function simulateWorkerMovement() {
+            // Simulate worker moving towards destination
+            if (workerPosition && endCoords) {
+                const progress = Math.random() * 0.15 + 0.1;
+                const newPos = [
+                    workerPosition[0] + (endCoords[0] - workerPosition[0]) * progress,
+                    workerPosition[1] + (endCoords[1] - workerPosition[1]) * progress
+                ];
+                workerPosition = newPos;
+                updateWorkerPosition(newPos);
+            } else {
+                workerPosition = startCoords;
+                updateWorkerPosition(startCoords);
+            }
+        }
+
+        function enableLateCancel() {
+            isLateCancel = true;
+            let btn = document.getElementById('cancelBtnWrapper');
+            let label = document.getElementById('cancelLabel');
+            let timer = document.getElementById('cancelTimer');
+            
+            btn.classList.add('late-fee');
+            label.innerText = "Cancel (Fee)";
+            timer.innerText = "Fee Applies";
+        }
+
+        function cancelBooking() { 
+            if(isLateCancel) {
+                document.getElementById('cancellationModal').style.display = 'flex';
+            } else {
+                if(confirm("Cancel Booking? (No Fee)")) window.location.href = "index.html"; 
+            }
+        }
+
+        function selectPay(btn) {
+            document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+
+        function processCancellation() {
+            let reason = document.getElementById('cancelReason').value;
+            if(!reason) { alert("Please select a reason."); return; }
+            
+            let btn = document.querySelector('#cancellationModal .submit-rate');
+            btn.innerText = "Processing Payment...";
+            
+            setTimeout(() => {
+                alert("Cancellation Fee Paid Successfully.\nBooking Cancelled.");
+                window.location.href = "index.html";
+            }, 1500);
+        }
+
+        function startBikeMovement() {
+            document.getElementById('timeText').innerText = "On the way...";
+            
+            // Initialize worker position
+            workerPosition = [...startCoords];
+            
+            let frames = 600; let currentFrame = 0;
+            let latStep = (endCoords[0] - startCoords[0]) / frames;
+            let lngStep = (endCoords[1] - startCoords[1]) / frames;
+            
+            let moveInterval = setInterval(() => {
+                if (currentFrame >= frames) { 
+                    clearInterval(moveInterval); 
+                    onArrived(); 
+                    return; 
+                }
+                
+                let newPos = [startCoords[0] + (latStep * currentFrame), startCoords[1] + (lngStep * currentFrame)];
+                workerPosition = newPos;
+                
+                // Use smooth movement
+                if (proMarker) {
+                    const oldPos = proMarker.getLatLng();
+                    smoothMoveMarker(proMarker, [oldPos.lat, oldPos.lng], newPos, 100);
+                }
+                
+                currentFrame++;
+            }, 50); 
+        }
+
+        function onArrived() {
+            document.getElementById('timeText').innerText = "Arrived";
+            document.getElementById('timeBadge').style.background = "#28a745"; 
+            let btn = document.getElementById('completeBtn');
+            btn.disabled = false; btn.classList.add('ringing'); 
+            btn.innerHTML = '<i class="fas fa-check-circle"></i> MARK COMPLETED <span style="color:red; font-size:18px; margin-left:5px;">*</span>';
+            document.getElementById('otpContainer').style.display = 'block';
+            
+            // Fly to destination on arrival
+            map.flyTo(endCoords, 18, { duration: 1 });
+        }
+
+        function completeWork() { document.getElementById('ratingModal').style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function openSupportMenu() { document.getElementById('supportMenuModal').style.display = 'flex'; }
+
+        function openChatSupport() {
+            closeModal('supportMenuModal');
+            document.getElementById('liveChatModal').style.display = 'flex';
+            if(!chatInitialized) {
+                chatInitialized = true;
+                addSystemMsg("Searching available agents...");
+                setTimeout(() => { addSystemMsg("Agent Anjali has joined the chat."); }, 1500);
+                setTimeout(() => { 
+                    addIncomingMsg("Hello! 👋 My name is Anjali."); 
+                    document.getElementById('agentName').innerText = "Agent Anjali";
+                    document.getElementById('agentStatus').innerText = "Typing...";
+                }, 2500);
+                setTimeout(() => { 
+                    addIncomingMsg("How can I help you regarding your booking?"); 
+                    document.getElementById('agentStatus').innerText = "Online";
+                }, 4000);
+            }
+        }
+
+        function addSystemMsg(text) {
+            let container = document.getElementById('chatContainer');
+            let div = document.createElement("div"); div.className = "msg msg-system"; div.innerText = text; container.appendChild(div);
+        }
+        function addIncomingMsg(text) {
+            let container = document.getElementById('chatContainer');
+            let time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            let div = document.createElement("div"); div.className = "msg msg-in"; div.innerHTML = `${text} <span class="msg-time">${time}</span>`; container.appendChild(div); container.scrollTop = container.scrollHeight;
+        }
+        function sendMessage() {
+            let input = document.getElementById('chatInput'); let text = input.value.trim(); if(!text) return;
+            let container = document.getElementById('chatContainer');
+            let time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            let div = document.createElement("div"); div.className = "msg msg-out"; div.innerHTML = `${text} <span class="msg-time">${time}</span>`; container.appendChild(div);
+            input.value = ""; container.scrollTop = container.scrollHeight;
+            document.getElementById('agentStatus').innerText = "Typing...";
+            setTimeout(() => { addIncomingMsg("Checking details, please wait..."); document.getElementById('agentStatus').innerText = "Online"; }, 2000);
+        }
+        function handleEnter(e) { if(e.key === "Enter") sendMessage(); }
+
+        let currentRating = 0;
+        function rate(star) {
+            currentRating = star;
+            let stars = document.querySelectorAll('#starContainer i');
+            stars.forEach((s, index) => { if(index < star) s.classList.add('active'); else s.classList.remove('active'); });
+        }
+        function submitReview() {
+            if(currentRating === 0) { alert("Please rate!"); return; }
+            alert("Job Closed."); 
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>

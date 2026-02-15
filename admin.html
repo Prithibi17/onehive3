@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneHive | Admin Control</title>
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("ABkWJi8hB94_iu6Pq"); 
+        })();
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #082347; --secondary: #FF8800; --bg: #EEF2F6; --text: #082347; --success: #27ae60; --danger: #e74c3c; --menu-active: #2196F3; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; }
+
+        /* --- LOGIN --- */
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        .login-box { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 350px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .login-logo { height: 60px; margin-bottom: 15px; object-fit: contain; }
+        .input-field { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 15px; outline: none; font-size: 16px; }
+        .btn-login { width: 100%; padding: 15px; background: var(--secondary); color: white; border: none; border-radius: 50px; font-weight: 700; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .btn-login:hover { background: var(--primary); }
+        #dashboardContent { display: none; }
+
+        /* --- NAVBAR --- */
+        nav { 
+            height: 80px; 
+            padding: 0 5%; background: var(--primary); 
+            display: flex; justify-content: space-between; align-items: center; 
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+        }
+        
+        .nav-left { display: flex; align-items: center; }
+        .logo-container { display: flex; align-items: center; gap: 12px; text-decoration: none; cursor: pointer; }
+        
+        /* LOGO IMAGE */
+        .logo-img { height: 50px; width: 50px; object-fit: contain; background: white; border-radius: 50%; padding: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        
+        .logo-text-group { display: flex; flex-direction: column; justify-content: center; line-height: 1; }
+        
+        /* Main Text "OneHive" */
+        .logo-text { font-size: 26px; font-weight: 800; color: white; letter-spacing: -0.5px; }
+        .logo-text span { color: var(--secondary) !important; }
+        
+        /* Subtext "Like Beehive" */
+        /* ✅ Fixed: Gap reduced to 2px (Bilkul paas) */
+        .logo-subtext { font-size: 13px; color: #ccc; font-weight: 500; font-style: italic; margin-top: 2px; display: flex; align-items: center; gap: 2px; } 
+        
+        .subtext-words span { color: var(--secondary); font-weight: 700; } 
+
+        /* BEE SVG ICON */
+        .custom-bee-logo { width: 18px; height: 18px; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-origin: center; }
+        
+        /* ✅ Hover Effect: Reduced Zoom (1.2 instead of 1.6) */
+        .logo-container:hover .custom-bee-logo { transform: scale(1.25) rotate(15deg); }
+
+        /* --- MENU BUTTON --- */
+        .nav-right { position: relative; }
+        .menu-btn { 
+            width: 45px; height: 45px; background: white; border-radius: 12px; border: none; 
+            cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; 
+            transition: 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .menu-line { width: 24px; height: 3px; background-color: var(--secondary); border-radius: 2px; transition: 0.3s; }
+        .menu-btn.active { background: var(--menu-active); box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
+        .menu-btn.active .menu-line { background-color: white; }
+        .menu-btn:hover { transform: scale(1.05); }
+
+        /* --- SIDEBAR --- */
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1001; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .sidebar { position: fixed; top: 0; right: -320px; width: 300px; height: 100%; background: white; z-index: 1002; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 25px; display: flex; flex-direction: column; box-shadow: -5px 0 30px rgba(0,0,0,0.15); }
+        .sidebar.active { right: 0; }
+        .sidebar-overlay.active { opacity: 1; visibility: visible; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .close-btn { width: 35px; height: 35px; border-radius: 50%; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #555; cursor: pointer; transition: 0.3s; }
+        .close-btn:hover { background: #ffebee; color: red; transform: rotate(90deg); }
+        .menu-link { text-decoration: none; color: var(--primary); font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 8px; transition: 0.2s; cursor: pointer; margin-bottom: 5px; }
+        .menu-link:hover { background: #E3F2FD; color: var(--primary); padding-left: 18px; }
+        .menu-reset { color: var(--danger); margin-top: 10px; border-top: 1px solid #eee; padding-top: 20px; }
+
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .stats-row { display: flex; gap: 20px; margin-bottom: 30px; }
+        .stat-card { flex: 1; background: white; padding: 20px; border-radius: 15px; text-align: center; border-bottom: 4px solid var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .stat-card h3 { font-size: 32px; margin: 5px 0; color: var(--primary); }
+
+        .worker-card { background: white; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 5px 25px rgba(0,0,0,0.05); overflow: hidden; border-left: 6px solid #ccc; transition: 0.3s; }
+        .worker-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .worker-card[data-status="6"] { border-left-color: var(--secondary); }
+        
+        /* Users Table Styles */
+        .users-table-container { overflow-x: auto; margin-top: 20px; }
+        .users-table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,0.05); }
+        .users-table thead { background: var(--primary); color: white; }
+        .users-table th { 
+            padding: 15px; 
+            text-align: left; 
+            font-weight: 600; 
+            background-color: var(--primary) !important;
+            color: #ffffff !important;
+            opacity: 1 !important;
+            filter: none !important;
+            transition: none !important;
+            pointer-events: none;
+        }
+        .users-table th:hover { 
+            background-color: var(--primary) !important; 
+            color: #ffffff !important; 
+            opacity: 1 !important;
+            filter: none !important;
+        }
+        .users-table td { padding: 15px; border-bottom: 1px solid #eee; }
+        .users-table tr:last-child td { border-bottom: none; }
+        .users-table tr:hover { background: #f8f9fa; }
+        .role-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .role-customer { background: #e3f2fd; color: #1976d2; }
+        .role-worker { background: #fff3e0; color: #f57c00; }
+        .role-admin { background: #f3e5f5; color: #7b1fa2; }
+        .role-shop { background: #e8f5e9; color: #388e3c; }
+        .card-header { padding: 15px 25px; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .app-id-badge { font-family: monospace; background: var(--primary); color: white; padding: 5px 10px; border-radius: 6px; font-size: 14px; }
+        .active-badge { background: var(--success); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-left: 10px; }
+        .card-body { padding: 25px; }
+        .info-block { margin-bottom: 20px; border-bottom: 1px dashed #eee; padding-bottom: 15px; }
+        .info-heading { font-size: 12px; font-weight: 800; color: #999; text-transform: uppercase; margin-bottom: 10px; display: block; letter-spacing: 1px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .data-point { margin-bottom: 5px; }
+        .data-point label { display: block; font-size: 11px; color: var(--primary); font-weight: 700; text-transform: uppercase; margin-bottom: 3px; }
+        .data-point span { font-weight: 600; color: #333; font-size: 15px; word-wrap: break-word; }
+        .action-area { background: #fafafa; padding: 20px; border-radius: 10px; border: 1px solid #eee; }
+        .step-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed #ddd; }
+        .step-row input { width: 18px; height: 18px; accent-color: var(--success); cursor: pointer; }
+        .decision-box { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-action { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; color: white; transition: 0.3s; }
+        .btn-approve { background: var(--success); } .btn-approve:hover { background: #219150; }
+        .btn-reject { background: var(--danger); } .btn-reject:hover { background: #c0392b; }
+        .slot-input, .reject-input { display: none; margin-top: 10px; width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        .btn-reset-profile { background: #ffebee; color: var(--danger); border: 1px solid #ffcdd2; padding: 5px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 700; }
+        @media(max-width: 900px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+        @media(max-width: 600px) { nav { padding: 0 15px; height: 70px; } .grid-4 { grid-template-columns: 1fr; } .logo-text { font-size: 20px; } .logo-subtext { display:none; } .menu-btn { width: 35px; height: 35px; } }
+
+        /* --- COMPACT WORKER CARDS (Section 1) --- */
+        .worker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; }
+        .compact-card { 
+            background: white; border-radius: 12px; padding: 15px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; 
+            transition: all 0.3s ease; border-left: 4px solid #ccc;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .compact-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+        .compact-card.status-approved { border-left-color: var(--success); }
+        .compact-card.status-rejected { border-left-color: var(--danger); }
+        .compact-card.status-pending { border-left-color: var(--secondary); }
+        .compact-card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .compact-card-name { font-weight: 700; color: var(--primary); font-size: 15px; }
+        .compact-card-category { font-size: 12px; color: #666; }
+        .compact-card-meta { display: flex; gap: 15px; font-size: 12px; color: #555; }
+        .compact-card-status { 
+            display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;
+        }
+        .status-pending { background: #fff3e0; color: #f57c00; }
+        .status-approved { background: #e8f5e9; color: #388e3c; }
+        .status-rejected { background: #ffebee; color: #c62828; }
+        .compact-card-id { font-family: monospace; font-size: 11px; color: #888; }
+        .compact-card-action { margin-top: auto; padding-top: 10px; border-top: 1px solid #eee; }
+        .btn-view-details { width: 100%; padding: 8px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; }
+        .btn-view-details:hover { background: #0d3259; }
+
+        /* --- MODAL FOR DETAILS (Section 1) --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: white; border-radius: 16px; width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header { padding: 20px; background: var(--primary); color: white; border-radius: 16px 16px 0 0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-close { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+        .modal-body { padding: 20px; }
+
+        /* --- PAGINATION (Section 6) --- */
+        .pagination-container { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 25px; padding: 15px; }
+        .pagination-btn { padding: 8px 15px; border: 1px solid #ddd; background: white; border-radius: 6px; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .pagination-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .pagination-btn.active { background: var(--secondary); color: white; border-color: var(--secondary); }
+        .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-size-select { padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        .pagination-info { font-size: 13px; color: #666; }
+
+        /* --- TABLE HOVER FIX (Section 5) --- */
+        .users-table thead tr:hover { background: var(--primary) !important; }
+    </style>
+</head>
+<body>
+
+    <div id="loginOverlay">
+        <div class="login-box">
+            <img src="img.jpg" class="login-logo" alt="OneHive Logo">
+            <h2 style="color:var(--primary); margin-bottom:5px;">Admin Login</h2>
+            <input type="text" id="adminId" class="input-field" placeholder="Enter Admin User ID">
+            <input type="password" id="adminPass" class="input-field" placeholder="Enter Password" onkeypress="if(event.key==='Enter') checkCredentials()">
+            <button class="btn-login" onclick="checkCredentials()">Access Dashboard</button>
+            <div style="margin-top:15px;">
+                <a href="login.html" style="color:#888;font-size:13px;text-decoration:none;border-bottom:1px dashed #888;">← Back to User Login</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboardContent" onclick="closeMenu()">
+        
+        <nav onclick="event.stopPropagation()">
+            <div class="nav-left">
+                <a href="#" class="logo-container">
+                    <img src="img.jpg" alt="Logo" class="logo-img">
+                    <div class="logo-text-group">
+                        <span class="logo-text">One<span>Hive</span></span>
+                        
+                        <div class="logo-subtext">
+                            <span class="subtext-words">Like Bee<span>hive</span></span>
+                            <svg class="custom-bee-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M25 45 C10 45 5 25 25 15 C45 5 50 35 35 45 Z" fill="#ADD8E6" stroke="#082347" stroke-width="2"/>
+                                <path d="M75 45 C90 45 95 25 75 15 C55 5 50 35 65 45 Z" fill="#ADD8E6" stroke="#082347" stroke-width="2"/>
+                                <path d="M40 30 Q35 10 25 15" stroke="#082347" stroke-width="3" fill="none"/>
+                                <path d="M60 30 Q65 10 75 15" stroke="#082347" stroke-width="3" fill="none"/>
+                                <ellipse cx="50" cy="55" rx="30" ry="35" fill="#FF8800" stroke="#082347" stroke-width="2"/>
+                                <path d="M25 50 Q50 60 75 50" stroke="#082347" stroke-width="6" fill="none"/>
+                                <path d="M28 65 Q50 75 72 65" stroke="#082347" stroke-width="6" fill="none"/>
+                                <circle cx="40" cy="45" r="4" fill="#082347"/> <circle cx="60" cy="45" r="4" fill="#082347"/>
+                                <circle cx="42" cy="43" r="1.5" fill="white"/> <circle cx="62" cy="43" r="1.5" fill="white"/>
+                                <path d="M45 55 Q50 60 55 55" stroke="#082347" stroke-width="2" fill="none"/>
+                                <circle cx="35" cy="52" r="3" fill="#FFB6C1" opacity="0.8"/>
+                                <circle cx="65" cy="52" r="3" fill="#FFB6C1" opacity="0.8"/>
+                                <path d="M50 90 L45 80 L55 80 Z" fill="#082347"/>
+                            </svg>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="nav-right">
+                <button class="menu-btn" id="menuToggleBtn" onclick="toggleMenu()">
+                    <div class="menu-line"></div><div class="menu-line"></div><div class="menu-line"></div>
+                </button>
+            </div>
+        </nav>
+
+        <div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3 style="color:var(--primary); margin:0;">Admin Panel</h3>
+                <div class="close-btn" onclick="toggleMenu()"><i class="fas fa-times"></i></div>
+            </div>
+            <div class="menu-links">
+                <div class="menu-section-title" style="font-size:12px; color:#999; text-transform:uppercase; margin-bottom:10px; font-weight:700;">Actions</div>
+                <a onclick="loadWorkers()" class="menu-link"><i class="fas fa-sync"></i> Refresh Data</a>
+                <a onclick="resetSystem()" class="menu-link menu-reset"><i class="fas fa-trash-alt"></i> Reset System</a>
+                <div class="menu-section-title" style="font-size:12px; color:#999; text-transform:uppercase; margin:20px 0 10px; font-weight:700;">View Data</div>
+                <a onclick="loadWorkers(); closeMenu();" class="menu-link"><i class="fas fa-users"></i> Workers List</a>
+                <a onclick="loadUsers(); closeMenu();" class="menu-link"><i class="fas fa-user-friends"></i> Registered Users</a>
+                <div class="menu-section-title" style="font-size:12px; color:#999; text-transform:uppercase; margin:20px 0 10px; font-weight:700;">Navigation</div>
+                <a href="index.html" class="menu-link"><i class="fas fa-home"></i> Home</a>
+                <a href="service.html" class="menu-link"><i class="fas fa-tools"></i> Services</a>
+                <a href="login.html" class="menu-link"><i class="fas fa-sign-in-alt"></i> Login</a>
+                <a href="register.html" class="menu-link"><i class="fas fa-user-plus"></i> Register</a>
+                <div class="menu-section-title" style="font-size:12px; color:#999; text-transform:uppercase; margin:20px 0 10px; font-weight:700;">Account</div>
+                <a href="index.html" class="menu-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="stats-row">
+                <div class="stat-card"><h3><span id="totalCount">0</span></h3><p>Total</p></div>
+                <div class="stat-card" style="border-color:orange;"><h3><span id="pendingCount">0</span></h3><p>Pending</p></div>
+                <div class="stat-card" style="border-color:green;"><h3><span id="approvedCount">0</span></h3><p>Approved</p></div>
+            </div>
+            <div class="stats-row">
+                <div class="stat-card" style="border-color:#9b59b6;"><h3><span id="totalUsers">...</span></h3><p>Total Users</p></div>
+                <div class="stat-card" style="border-color:#3498db;"><h3><span id="totalWorkers">...</span></h3><p>Total Workers</p></div>
+                <div class="stat-card" style="border-color:#e67e22;"><h3><span id="totalCustomers">...</span></h3><p>Total Customers</p></div>
+            </div>
+            <div id="workerList"></div>
+            <div id="paginationContainer" class="pagination-container"></div>
+            <div id="usersList"></div>
+        </div>
+    </div>
+
+    <!-- Modal for Worker Details (Section 1) -->
+    <div id="workerModal" class="modal-overlay" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Worker Application Details</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        function checkCredentials() {
+            const id = document.getElementById('adminId').value.trim();
+            const pass = document.getElementById('adminPass').value.trim();
+            if(id === "Ansh6396060416" && pass === "Ansh@123") {
+                // Store admin session
+                localStorage.setItem('adminLoggedIn', 'true');
+                localStorage.setItem('adminId', id);
+                document.getElementById('loginOverlay').style.display = "none";
+                document.getElementById('dashboardContent').style.display = "block";
+                loadWorkers();
+            } else { 
+                alert("Invalid Admin Credentials"); 
+            }
+        }
+
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+            document.getElementById('menuToggleBtn').classList.toggle('active');
+        }
+        function closeMenu() { 
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+            document.getElementById('menuToggleBtn').classList.remove('active');
+        }
+
+        // Load admin stats - workers from API parameter, users from API
+        function loadAdminStats(workerCount) {
+            // Workers count from parameter (passed from loadWorkers)
+            let totalWorkers = workerCount || 0;
+            
+            // Fetch user counts from API
+            fetch('http://localhost:3000/api/admin/stats')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('[ADMIN] Stats API response:', data);
+                    if (data.success) {
+                        // Total Users = MongoDB users + localStorage workers
+                        let totalUsers = data.data.totalUsers + totalWorkers;
+                        // Total Customers from MongoDB
+                        let totalCustomers = data.data.totalCustomers;
+                        
+                        document.getElementById('totalUsers').innerText = totalUsers;
+                        document.getElementById('totalWorkers').innerText = totalWorkers;
+                        document.getElementById('totalCustomers').innerText = totalCustomers;
+                    } else {
+                        // Fallback: only localStorage data
+                        document.getElementById('totalUsers').innerText = totalWorkers;
+                        document.getElementById('totalWorkers').innerText = totalWorkers;
+                        document.getElementById('totalCustomers').innerText = 0;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading admin stats:', error);
+                    // Fallback: only localStorage data
+                    document.getElementById('totalUsers').innerText = totalWorkers;
+                    document.getElementById('totalWorkers').innerText = totalWorkers;
+                    document.getElementById('totalCustomers').innerText = 0;
+                });
+        }
+
+        function loadWorkers() {
+            closeMenu();
+            document.getElementById('usersList').innerHTML = '';
+            
+            // Load workers from API
+            fetch('http://127.0.0.1:3000/api/workers')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('[ADMIN] Workers API response:', data);
+                    let db = [];
+                    if (data.success && data.data) {
+                        db = data.data;
+                    }
+                    
+                    let list = document.getElementById('workerList');
+                    list.innerHTML = "";
+                    document.getElementById('totalCount').innerText = db.length;
+                    document.getElementById('pendingCount').innerText = db.filter(w => (w.statusLevel || 1) < 5).length;
+                    document.getElementById('approvedCount').innerText = db.filter(w => (w.statusLevel || 1) >= 5).length;
+
+                    // Load admin stats
+                    loadAdminStats(db.length);
+
+                    if(db.length === 0) { list.innerHTML = "<p style='text-align:center; color:#777; margin-top:50px;'>No applications found.</p>"; return; }
+
+                    // Map all workers and store in global array for pagination
+                    allWorkers = db.slice().reverse().map((w, i) => {
+                        // Map backend fields to frontend expected format
+                        return {
+                            from_name: w.user?.name || '—',
+                            service: w.profession || '—',
+                            appId: w.trackingId || '—',
+                            gender: w.user?.gender || '—',
+                            dob: w.user?.dob || '—',
+                            mobile: w.user?.phone || '—',
+                            whatsapp: w.user?.whatsapp || '—',
+                            experience: w.experience || 0,
+                            tools: w.skills?.join(', ') || '—',
+                            availability: w.availability,
+                            pincode: w.location?.pincode || '—',
+                            address: w.location?.address || '—',
+                            district: w.location?.city || '—',
+                            state: w.location?.state || '—',
+                            about: w.description || '—',
+                            statusLevel: w.applicationStatus === 'approved' ? 6 : (w.applicationStatus === 'rejected' ? -1 : 1),
+                            _id: w._id,
+                            isVerified: w.isVerified,
+                            verificationStatus: w.verificationStatus
+                        };
+                    });
+
+                    // Use new compact card system with pagination
+                    currentPage = 1;
+                    renderWorkerCards(allWorkers);
+                })
+                .catch(error => {
+                    console.error('Error loading workers:', error);
+                    // Fallback to localStorage
+                    let db = JSON.parse(localStorage.getItem('ONEHIVE_WORKER_DB') || "[]");
+                    document.getElementById('totalCount').innerText = db.length;
+                    document.getElementById('pendingCount').innerText = db.filter(w => (w.statusLevel || 1) < 5).length;
+                    document.getElementById('approvedCount').innerText = db.filter(w => (w.statusLevel || 1) >= 5).length;
+                    loadAdminStats(db.length);
+                    
+                    // Use compact cards for localStorage fallback
+                    allWorkers = db.map(w => ({
+                        from_name: w.from_name || '—',
+                        service: w.service || '—',
+                        appId: w.appId || '—',
+                        gender: w.gender || '—',
+                        dob: w.dob || '—',
+                        mobile: w.mobile || '—',
+                        whatsapp: w.whatsapp || '—',
+                        experience: w.experience || 0,
+                        tools: w.tools || '—',
+                        availability: typeof w.availability === 'string' ? JSON.parse(w.availability || '{}') : w.availability,
+                        pincode: w.pincode || '—',
+                        address: w.address || '—',
+                        district: w.district || '—',
+                        state: w.state || '—',
+                        about: w.about || '—',
+                        statusLevel: w.statusLevel || 1,
+                        _id: w._id,
+                        isVerified: w.isVerified
+                    }));
+                    currentPage = 1;
+                    renderWorkerCards(allWorkers);
+                });
+        }
+
+        function loadUsers() {
+            closeMenu();
+            document.getElementById('workerList').innerHTML = '';
+            
+            const API_URL = 'http://127.0.0.1:3000/api';
+            
+            fetch(`${API_URL}/admin/users`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('[ADMIN] Users API response:', data);
+                    
+                    let usersList = document.getElementById('usersList');
+                    usersList.innerHTML = '';
+                    
+                    if (!data.success || !data.data || data.data.length === 0) {
+                        usersList.innerHTML = '<div style="text-align:center; color:#777; margin-top:50px; padding:40px;">No registered users found</div>';
+                        document.getElementById('totalCount').innerText = '0';
+                        document.getElementById('pendingCount').innerText = '0';
+                        document.getElementById('approvedCount').innerText = '0';
+                        return;
+                    }
+                    
+                    const users = data.data;
+                    document.getElementById('totalCount').innerText = users.length;
+                    document.getElementById('pendingCount').innerText = users.filter(u => u.role === 'customer').length;
+                    document.getElementById('approvedCount').innerText = users.filter(u => u.role === 'worker').length;
+                    
+                    // Build table
+                    let tableHtml = `
+                        <div class="users-table-container">
+                            <table class="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Role</th>
+                                        <th>Registered On</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    users.forEach(user => {
+                        const roleLabel = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+                        const date = new Date(user.createdAt);
+                        const formattedDate = date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                        
+                        tableHtml += `
+                            <tr>
+                                <td>${user.name}</td>
+                                <td><span class="role-badge role-${user.role}">${roleLabel}</span></td>
+                                <td>${formattedDate}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHtml += '</tbody></table></div>';
+                    usersList.innerHTML = tableHtml;
+                })
+                .catch(error => {
+                    console.error('[ADMIN] Error loading users:', error);
+                    let usersList = document.getElementById('usersList');
+                    usersList.innerHTML = '<div style="text-align:center; color:#e74c3c; margin-top:50px; padding:40px;">Unable to load users</div>';
+                });
+        }
+
+        // Format shift/availability for display
+        function formatShift(shift) {
+            if (!shift) return "-";
+            
+            try {
+                // Parse if it's a string
+                if (typeof shift === 'string') {
+                    shift = JSON.parse(shift);
+                }
+                
+                if (typeof shift !== 'object') return "-";
+                
+                return Object.entries(shift)
+                    .map(([day, data]) => {
+                        const dayLabel = day.charAt(0).toUpperCase() + day.slice(1);
+                        
+                        if (!data.available) {
+                            return `${dayLabel}: Not Available`;
+                        }
+                        
+                        return `${dayLabel}: ${data.start} – ${data.end}`;
+                    })
+                    .join("<br>");
+            } catch (e) {
+                return "-";
+            }
+        }
+
+        function updStatus(workerId, step, cb) { 
+            if (!cb.checked) return; 
+            const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+            if (confirm('Verify Step?')) {
+                fetch(`http://localhost:3000/api/workers/status/${workerId}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ verificationStatus: 'verified', isVerified: true })
+                }).then(() => loadWorkers()).catch(err => console.error(err));
+            } else { 
+                cb.checked = false; 
+            } 
+        }
+        
+        function showId(id) { document.querySelectorAll('.slot-input, .reject-input').forEach(el => el.style.display='none'); document.getElementById(id).style.display='block'; }
+        
+        async function doApprove(workerId) { 
+            const API_URL = 'http://localhost:3000/api';
+            const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+            try {
+                const response = await fetch(`${API_URL}/workers/status/${workerId}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ applicationStatus: 'approved', isVerified: true, verificationStatus: 'verified' })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('Worker approved successfully!');
+                    loadWorkers();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to approve worker');
+            }
+        }
+        
+        async function doReject(workerId) {
+            const API_URL = 'http://localhost:3000/api';
+            const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+            try {
+                const response = await fetch(`${API_URL}/workers/status/${workerId}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ applicationStatus: 'rejected', isVerified: false, verificationStatus: 'rejected' })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('Worker rejected!');
+                    loadWorkers();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to reject worker');
+            }
+        }
+        
+        async function delApp(workerId) {
+            if (confirm('Delete this application?')) {
+                const API_URL = 'http://localhost:3000/api';
+                const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+                try {
+                    const response = await fetch(`${API_URL}/workers/${workerId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        alert('Worker deleted!');
+                        loadWorkers();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Failed to delete worker');
+                }
+            }
+        }
+        
+        function resetSystem() { closeMenu(); if(confirm('WARNING: Wipe ALL Data?')) { localStorage.clear(); location.reload(); } }
+
+        // --- COMPACT CARD & MODAL FUNCTIONS (Section 1) ---
+        let currentPage = 1;
+        let pageSize = 10;
+        let allWorkers = [];
+        let selectedWorker = null;
+
+        function renderWorkerCards(workers) {
+            const list = document.getElementById('workerList');
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const paginatedWorkers = workers.slice(start, end);
+            
+            if (workers.length === 0) {
+                list.innerHTML = "<p style='text-align:center; color:#777; margin-top:50px;'>No applications found.</p>";
+                document.getElementById('paginationContainer').innerHTML = '';
+                return;
+            }
+
+            list.innerHTML = paginatedWorkers.map((w, idx) => {
+                const realIdx = start + idx;
+                const statusClass = w.statusLevel >= 5 ? 'status-approved' : (w.statusLevel < 0 ? 'status-rejected' : 'status-pending');
+                const statusText = w.statusLevel >= 5 ? 'Approved' : (w.statusLevel < 0 ? 'Rejected' : 'Pending');
+                return `<div class="compact-card ${statusClass}" onclick="openWorkerModal(${realIdx})">
+                    <div class="compact-card-header">
+                        <div>
+                            <div class="compact-card-name">${w.from_name}</div>
+                            <div class="compact-card-category">${w.service}</div>
+                        </div>
+                        <span class="compact-card-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="compact-card-meta">
+                        <span><i class="fas fa-briefcase"></i> ${w.experience} yrs</span>
+                        <span><i class="fas fa-map-marker-alt"></i> ${w.district || '-'}</span>
+                    </div>
+                    <div class="compact-card-id">${w.appId}</div>
+                    <div class="compact-card-action">
+                        <button class="btn-view-details">View Details</button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            renderPagination(workers.length);
+        }
+
+        function renderPagination(total) {
+            const totalPages = Math.ceil(total / pageSize);
+            const container = document.getElementById('paginationContainer');
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = `<span class="pagination-info">Showing ${(currentPage-1)*pageSize + 1}-${Math.min(currentPage*pageSize, total)} of ${total}</span>`;
+            html += `<button class="pagination-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    html += `<span style="color:#999;">...</span>`;
+                }
+            }
+            
+            html += `<button class="pagination-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+            html += `<select class="page-size-select" onchange="changePageSize(this.value)">
+                <option value="10" ${pageSize === 10 ? 'selected' : ''}>10 / page</option>
+                <option value="25" ${pageSize === 25 ? 'selected' : ''}>25 / page</option>
+                <option value="50" ${pageSize === 50 ? 'selected' : ''}>50 / page</option>
+                <option value="100" ${pageSize === 100 ? 'selected' : ''}>100 / page</option>
+            </select>`;
+            
+            container.innerHTML = html;
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(allWorkers.length / pageSize);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderWorkerCards(allWorkers);
+        }
+
+        function changePageSize(size) {
+            pageSize = parseInt(size);
+            currentPage = 1;
+            renderWorkerCards(allWorkers);
+        }
+
+        function openWorkerModal(index) {
+            selectedWorker = allWorkers[index];
+            if (!selectedWorker) return;
+            
+            const lvl = selectedWorker.statusLevel || 1;
+            const isAuth = selectedWorker.isVerified === true;
+            const steps = ["Received", "Docs Verified", "Police Check", "Skill Trial"];
+            const realIdx = index % pageSize;
+            
+            let stepsHtml = steps.map((s, idx) => `<div class="step-row"><input type="checkbox" onchange="updStatus('${selectedWorker._id}', ${idx+1}, this)" ${lvl > idx ? 'checked' : ''}> <span style="font-size:14px;">${s}</span></div>`).join('');
+            
+            let decisionHtml = lvl < 5 ? 
+                `<div class="decision-box"><button class="btn-action btn-approve" onclick="showId('slot-${realIdx}')">Approve</button><button class="btn-action btn-reject" onclick="showId('reason-${realIdx}')">Reject</button></div>
+                <div id="slot-${realIdx}" class="slot-input"><label style="display:block;margin-bottom:5px;font-weight:bold;color:#27ae60;">Select Training Date:</label><input type="datetime-local" id="date-${realIdx}" class="input-field" style="margin-bottom:5px;"><button class="btn-action btn-approve" style="width:100%" onclick="doApprove('${selectedWorker._id}')">Confirm & Enable Login</button></div>
+                <div id="reason-${realIdx}" class="reject-input"><input type="text" id="rej-${realIdx}" class="input-field" placeholder="Reason..."><button class="btn-action btn-reject" style="width:100%" onclick="doReject('${selectedWorker._id}')">Confirm Reject</button></div>` : 
+                `<div style="background:#E8F5E9; padding:10px; border-radius:8px; margin-top:10px; color:green; font-weight:bold;">Approved & Active</div><button class="btn-action btn-reject" style="width:auto; padding:5px 10px; font-size:11px; margin-top:5px;" onclick="doReject('${selectedWorker._id}')">Revoke Access</button>`;
+
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <div class="worker-card" data-status="${lvl}" style="margin:0;box-shadow:none;">
+                    <div class="card-header">
+                        <div><h3 style="margin:0;color:var(--primary);">${selectedWorker.from_name} <small>(${selectedWorker.service})</small></h3>${isAuth ? '<span class="active-badge">Active</span>' : ''}</div>
+                        <div><span class="app-id-badge">${selectedWorker.appId}</span><button class="btn-reset-profile" onclick="delApp('${selectedWorker._id}'); closeModal();">Delete</button></div>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-block"><span class="info-heading">Personal Details</span>
+                            <div class="grid-4">
+                                <div class="data-point"><label>Gender</label><span>${selectedWorker.gender || '—'}</span></div>
+                                <div class="data-point"><label>DOB</label><span>${selectedWorker.dob || '—'}</span></div>
+                                <div class="data-point"><label>Mobile</label><span>${selectedWorker.mobile || '—'}</span></div>
+                                <div class="data-point"><label>WhatsApp</label><span>${selectedWorker.whatsapp || '—'}</span></div>
+                            </div>
+                        </div>
+                        <div class="info-block"><span class="info-heading">Work & Skills</span>
+                            <div class="grid-4">
+                                <div class="data-point"><label>Experience</label><span>${selectedWorker.experience || 0} Yrs</span></div>
+                                <div class="data-point"><label>Tools Available</label><span>${selectedWorker.tools || '—'}</span></div>
+                                <div class="data-point"><label>Preferred Shift</label><span>${formatShift(selectedWorker.availability)}</span></div>
+                                <div class="data-point"><label>Pincode</label><span>${selectedWorker.pincode || '—'}</span></div>
+                            </div>
+                        </div>
+                        <div class="info-block"><span class="info-heading">Location & Bio</span>
+                            <div class="grid-4">
+                                <div class="data-point" style="grid-column:span 4"><label>Full Address</label><span>${selectedWorker.address || '—'}, ${selectedWorker.district || '—'}, ${selectedWorker.state || '—'}</span></div>
+                                <div class="data-point" style="grid-column:span 4"><label>About Worker</label><span>${selectedWorker.about || '—'}</span></div>
+                            </div>
+                        </div>
+                        <div class="action-area"><span class="info-heading" style="color:var(--primary);">Control Panel</span>${stepsHtml} ${decisionHtml}</div>
+                    </div>
+                </div>`;
+            
+            document.getElementById('workerModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('workerModal').classList.remove('active');
+            selectedWorker = null;
+        }
+
+        // Safe data formatter (Section 2 & 7)
+        function safeValue(val, fallback = '—') {
+            if (val === null || val === undefined || val === '' || val === '-') return fallback;
+            if (typeof val === 'object') return JSON.stringify(val);
+            return val;
+        }
+    </script>
+</body>
+</html>

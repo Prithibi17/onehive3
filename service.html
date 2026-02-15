@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneHive | Book Service</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #082347; --secondary: #FF9900; --bg-color: #f4f7f6; --text-main: #082347; }
+        body { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
+        
+        /* NAVBAR */
+        nav { height: 120px; padding: 0 5%; display: flex; justify-content: space-between; align-items: center; background: white; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
+        .logo-container { display: flex; align-items: center; gap: 15px; text-decoration: none; }
+        .logo-img { height: 90px; width: auto; object-fit: contain; }
+        .logo-text { font-size: 38px; font-weight: 800; color: var(--primary); margin-top: 5px; }
+        .back-btn { padding: 10px 25px; border: 2px solid var(--primary); border-radius: 50px; color: var(--primary); font-weight: 700; text-decoration: none; transition: 0.3s; }
+        .back-btn:hover { background: var(--primary); color: white; }
+
+        .container { max-width: 800px; margin: 50px auto; padding: 0 20px; text-align: center; }
+        .booking-box { background: white; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); position: relative; }
+        .service-icon-large { width: 70px; height: 70px; background: #E3F2FD; color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 15px; transition: 0.3s; }
+        h1 { margin: 0 0 5px 0; color: var(--primary); font-size: 2.2rem; line-height: 1.2; }
+        .subtitle { color: #666; font-size: 1rem; margin-top: 0; margin-bottom: 25px; display: block; width: 100%; }
+
+        .custom-input-wrapper { position: relative; width: 100%; max-width: 600px; margin: 0 auto; display: flex; align-items: center; margin-top: 35px; }
+        .input-label { position: absolute; top: -28px; left: 5px; font-weight: 700; color: #444; font-size: 14px; }
+        .custom-input { width: 100%; padding: 18px 55px 18px 20px; font-size: 17px; border: 2px solid #eee; border-radius: 12px; outline: none; transition: 0.3s; background: #f9f9f9; }
+        .custom-input:focus { border-color: var(--secondary); background: white; }
+        .mic-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); font-size: 20px; color: var(--primary); cursor: pointer; background: white; padding: 8px; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .mic-listening { color: red !important; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); } }
+
+        /* UPLOAD */
+        .upload-section { margin: 25px auto 0; max-width: 600px; text-align: left; }
+        .upload-container { border: 2px dashed #ccc; border-radius: 12px; background: #fcfcfc; padding: 20px; text-align: center; transition: 0.3s; }
+        .upload-buttons { display: flex; gap: 15px; justify-content: center; margin-bottom: 10px; }
+        .action-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ddd; background: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: #555; transition: 0.2s; }
+        .action-btn:hover { background: #f0f8ff; border-color: var(--primary); color: var(--primary); }
+        .action-btn i { font-size: 20px; color: var(--secondary); }
+        .upload-count { font-size: 12px; color: #999; margin-top: 5px; }
+        .preview-container { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .preview-item { position: relative; width: 70px; height: 70px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
+        .preview-item img { width: 100%; height: 100%; object-fit: cover; }
+        .remove-img { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: white; width: 18px; height: 18px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .remove-img:hover { background: red; }
+        .input-error-field { border: 2px solid red !important; background: #fff0f0 !important; animation: shake 0.4s ease-in-out; }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
+
+        .book-action-btn { background: var(--secondary); color: white; border: none; padding: 16px 50px; font-size: 18px; font-weight: bold; border-radius: 50px; cursor: pointer; width: 100%; max-width: 600px; margin-top: 30px; transition: 0.3s; }
+        .book-action-btn:hover { background: var(--primary); transform: scale(1.02); }
+
+        /* ANALYZING OVERLAY */
+        .analyzing-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 5000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .scanner-line { width: 100%; height: 2px; background: var(--secondary); box-shadow: 0 0 10px var(--secondary); animation: scan 1.5s infinite ease-in-out; position: absolute; top: 40%; }
+        @keyframes scan { 0% { top: 30%; opacity: 0; } 50% { opacity: 1; } 100% { top: 70%; opacity: 0; } }
+        .analyze-text { margin-top: 20px; font-size: 18px; color: var(--primary); font-weight: bold; }
+        .analyze-sub { font-size: 13px; color: #666; margin-top: 5px; }
+
+        /* PAYMENT MODAL */
+        .payment-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: none; justify-content: center; align-items: center; }
+        .payment-box { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; text-align: center; position: relative; animation: popUp 0.3s ease-in-out; }
+        @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .bill-box { background: #f9f9f9; padding: 15px; border-radius: 12px; margin: 15px 0 20px; text-align: left; border: 1px solid #eee; }
+        .bill-row { display: flex; justify-content: space-between; font-size: 14px; color: #555; margin-bottom: 8px; }
+        .bill-row.discount-row { color: #28a745; font-weight: 600; }
+        .bill-total { display: flex; justify-content: space-between; font-size: 18px; color: var(--primary); font-weight: 800; border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 10px; }
+
+        .pay-option { display: flex; align-items: center; gap: 15px; padding: 15px; border: 1px solid #eee; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: 0.3s; text-align: left; }
+        .pay-option:hover { border-color: var(--secondary); background: #fff5e6; }
+        .pay-icon { font-size: 24px; color: var(--primary); width: 40px; text-align: center; }
+
+        .suggestions-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border-radius: 0 0 15px 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); display: none; flex-direction: column; overflow: hidden; z-index: 200; border: 1px solid #eee; text-align: left; }
+        .suggestion-item { padding: 15px 20px; cursor: pointer; font-size: 16px; color: #555; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; gap: 10px; }
+        .suggestion-item:hover { background: #f0f8ff; color: var(--primary); padding-left: 25px; }
+
+        .searching-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8, 35, 71, 0.95); display: none; flex-direction: column; justify-content: center; align-items: center; color: white; z-index: 4000; }
+        .radar { width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--secondary); border-top-color: transparent; animation: spin 1s infinite linear; margin-bottom: 20px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        .location-wrapper { display: flex; align-items: center; gap: 8px; background: #f8f9fa; padding: 6px 6px 6px 18px; border-radius: 50px; border: 1px solid #eee; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-right: 20px; }
+        .city-select { border: none; background: transparent; font-weight: 700; color: var(--primary); outline: none; font-size: 16px; cursor: pointer; min-width: 140px; }
+        .detect-btn { background: linear-gradient(135deg, #FF9900, #FF5500); color: white; border: none; padding: 8px 16px; border-radius: 50px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(255, 153, 0, 0.4); transition: all 0.3s ease; }
+        .detect-btn:hover { transform: scale(1.05); }
+        .detect-btn.loading { background: var(--primary); cursor: wait; opacity: 1; }
+        @media(max-width: 768px) { .location-wrapper { display: none; } }
+    </style>
+</head>
+<body onload="initPage()">
+
+    <nav>
+        <a href="index.html" class="logo-container"><img src="img.jpg" alt="Logo" class="logo-img"><span class="logo-text">OneHive</span></a>
+        <div style="display:flex; align-items:center">
+            <div class="location-wrapper">
+                <i class="fas fa-map-marker-alt" style="color:var(--primary)"></i>
+                <select id="citySelector" class="city-select" onchange="changeCityManual()">
+                    <option value="Agra">Agra</option>
+                    <option value="Delhi">Delhi</option>
+                    <option value="Jaipur">Jaipur</option>
+                    <option value="Mumbai">Mumbai</option>
+                </select>
+                <button class="detect-btn" id="navLocBtn" onclick="detectNavLocation()">
+                    <i class="fas fa-location-arrow" id="navLocIcon"></i> Detect
+                </button>
+            </div>
+            <a href="login.html" style="background: #FF8800; color: white; text-decoration: none; padding: 10px 20px; border-radius: 25px; font-weight: 600; margin-right: 10px;">Login</a>
+            <a href="index.html" class="back-btn">Back</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="booking-box">
+            <div class="service-icon-large"><i class="fas fa-tools" id="serviceIcon"></i></div>
+            <h1 id="pageTitle">Book Service</h1>
+            <span class="subtitle">Assigning the best <span id="serviceSpan" style="font-weight:bold; color:var(--secondary);">Professional</span> nearby.</span>
+            
+            <div class="custom-input-wrapper">
+                <label class="input-label">Describe your issue <span style="color:red">*</span>:</label>
+                <input type="text" id="issueInput" class="custom-input" placeholder="Type or use Mic..." onkeyup="showAutoSuggest()" autocomplete="off">
+                <i class="fas fa-microphone mic-icon" id="micBtn" onclick="startVoiceInput()" title="Tap to Speak"></i>
+                <div id="suggestionsBox" class="suggestions-list"></div>
+            </div>
+
+            <div class="upload-section">
+                <label class="input-label" style="position:relative; top:0; font-size:14px; margin-bottom:8px; display:block;">Upload Photos (Min 1, Max 7) <span style="color:red">*</span></label>
+                <div class="upload-container" id="uploadContainer">
+                    <div class="upload-buttons">
+                        <div class="action-btn" onclick="triggerCamera()"><i class="fas fa-camera"></i><span>Take Photo</span></div>
+                        <div class="action-btn" onclick="triggerGallery()"><i class="fas fa-images"></i><span>Open Gallery</span></div>
+                    </div>
+                    <p class="upload-count" id="photoCount">0/7 Photos Selected</p>
+                </div>
+                <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleFiles(this.files)">
+                <input type="file" id="galleryInput" multiple accept="image/*" style="display:none" onchange="handleFiles(this.files)">
+                <div id="previewContainer" class="preview-container"></div>
+            </div>
+            
+            <button class="book-action-btn" onclick="initiateAnalysis()">Find Expert Nearby</button>
+        </div>
+    </div>
+
+    <div id="analyzingOverlay" class="analyzing-overlay">
+        <div class="scanner-line"></div>
+        <i class="fas fa-search" style="font-size:50px; color:var(--primary); margin-bottom:20px;"></i>
+        <div class="analyze-text">Analyzing your issue...</div>
+        <div class="analyze-sub">Experts are calculating Material & Labor costs.</div>
+        <div class="analyze-sub" style="color:var(--secondary); font-weight:bold; margin-top:10px;">Please Wait...</div>
+    </div>
+
+    <div id="paymentModal" class="payment-overlay">
+        <div class="payment-box">
+            <h2 style="margin:0 0 15px 0; color:var(--primary);">Confirm Service</h2>
+            <p style="color:#666; font-size:13px; margin-bottom:15px;">Quote based on your photos:</p>
+            
+            <div class="bill-box">
+                <div class="bill-row">
+                    <span>Expert Visiting & Labor:</span>
+                    <span id="billLabor" style="font-weight:600">₹0</span>
+                </div>
+                <div class="bill-row">
+                    <span>Estimated Material Cost:</span>
+                    <span id="billMaterial" style="font-weight:600">₹0</span>
+                </div>
+                <div class="bill-row discount-row">
+                    <span>Discount (OneHive):</span>
+                    <span id="billDiscount" style="font-weight:600">- ₹0</span>
+                </div>
+                <div class="bill-total">
+                    <span>Total Estimate:</span>
+                    <span id="billTotal">₹0</span>
+                </div>
+            </div>
+
+            <div class="pay-option" onclick="processPayment('online')">
+                <div class="pay-icon"><i class="fas fa-credit-card"></i></div>
+                <div><h4 style="margin:0">Pay Online</h4><p style="margin:0; font-size:12px; color:#777">UPI, Cards, Net Banking</p></div>
+            </div>
+            <div class="pay-option" onclick="processPayment('cash')">
+                <div class="pay-icon"><i class="fas fa-money-bill-wave"></i></div>
+                <div><h4 style="margin:0">Cash on Delivery</h4><p style="margin:0; font-size:12px; color:#777">Pay after service</p></div>
+            </div>
+            <p style="font-size:12px; color:red; cursor:pointer; margin-top:20px;" onclick="closePayment()">Cancel</p>
+        </div>
+    </div>
+
+    <div id="searchOverlay" class="searching-overlay">
+        <div class="radar"></div>
+        <h2>Matching Professional...</h2>
+        <p id="searchMsg" style="margin-top:10px;">Scanning nearby experts...</p>
+    </div>
+
+    <script>
+        const serviceData = {
+            "Electrician": { icon: "fa-bolt", labor: 299, sentences: ["Fan noise", "Switch broken"] },
+            "Plumber": { icon: "fa-faucet", labor: 349, sentences: ["Tap leaking", "Pipe burst"] },
+            "Painter": { icon: "fa-paint-roller", labor: 499, sentences: ["Paint peeling", "Full house painting"] },
+            "Carpenter": { icon: "fa-hammer", labor: 399, sentences: ["Door lock broken", "Furniture repair"] },
+            "AC Repair": { icon: "fa-snowflake", labor: 599, sentences: ["AC not cooling", "Gas refill"] },
+            "Appliances": { icon: "fa-tv", labor: 449, sentences: ["Washing machine issue", "Fridge check"] },
+            "Other": { icon: "fa-tools", labor: 199, sentences: ["General helper", "Heavy lifting"] }
+        };
+
+        let currentService = "Other"; 
+        let uploadedFiles = []; 
+
+        function initPage() {
+            let savedCity = localStorage.getItem('currentCity');
+            if (savedCity) { updateCityUI(savedCity); } else { updateCityUI("Agra"); }
+            const urlParams = new URLSearchParams(window.location.search);
+            currentService = decodeURIComponent(urlParams.get('service') || "Other");
+            const data = serviceData[currentService] || serviceData["Other"];
+            document.getElementById('pageTitle').innerText = "Book " + currentService;
+            document.getElementById('serviceSpan').innerText = currentService;
+            document.getElementById('serviceIcon').className = "fas " + data.icon;
+            document.getElementById('issueInput').placeholder = `Type or use Mic (e.g. ${data.sentences[0]})...`;
+        }
+
+        function triggerCamera() { document.getElementById('cameraInput').click(); }
+        function triggerGallery() { document.getElementById('galleryInput').click(); }
+
+        function handleFiles(files) {
+            let box = document.getElementById('uploadContainer');
+            box.classList.remove('input-error-field'); 
+            let remainingSlots = 7 - uploadedFiles.length; 
+            if(files.length > remainingSlots) { alert(`You can only upload ${remainingSlots} more photos.`); return; }
+            for(let i=0; i<files.length; i++) {
+                if(uploadedFiles.length < 7) {
+                    uploadedFiles.push(files[i]);
+                    displayPreview(files[i], uploadedFiles.length - 1);
+                }
+            }
+            updateCount();
+            document.getElementById('cameraInput').value = ""; document.getElementById('galleryInput').value = "";
+        }
+
+        function displayPreview(file, index) {
+            let container = document.getElementById('previewContainer');
+            let div = document.createElement('div'); div.className = "preview-item"; div.id = "img-" + index;
+            let img = document.createElement('img'); img.src = URL.createObjectURL(file);
+            let removeBtn = document.createElement('div'); removeBtn.className = "remove-img"; removeBtn.innerHTML = "<i class='fas fa-times'></i>";
+            removeBtn.onclick = function() { removeImage(index); };
+            div.appendChild(img); div.appendChild(removeBtn); container.appendChild(div);
+        }
+
+        function removeImage(index) {
+            uploadedFiles.splice(index, 1);
+            document.getElementById('previewContainer').innerHTML = "";
+            uploadedFiles.forEach((file, idx) => displayPreview(file, idx));
+            updateCount();
+        }
+        function updateCount() { document.getElementById('photoCount').innerText = `${uploadedFiles.length}/7 Photos Selected`; }
+
+        /* --- GENERATE BILL AND SAVE TO STORAGE --- */
+        function initiateAnalysis() {
+            let input = document.getElementById('issueInput');
+            let uploadContainer = document.getElementById('uploadContainer');
+            if(!input.value.trim()) { input.classList.add("input-error-field"); return; }
+            if(uploadedFiles.length === 0) { uploadContainer.classList.add("input-error-field"); return; }
+
+            let isLoggedIn = localStorage.getItem('isLoggedIn');
+            if(isLoggedIn !== 'true') { alert("⚠ Please Login first!"); window.location.href = "login.html"; return; }
+
+            document.getElementById('analyzingOverlay').style.display = 'flex';
+
+            setTimeout(() => {
+                document.getElementById('analyzingOverlay').style.display = 'none';
+                generateBill();
+                document.getElementById('paymentModal').style.display = 'flex';
+            }, 4000);
+        }
+
+        function generateBill() {
+            let data = serviceData[currentService] || serviceData["Other"];
+            let labor = data.labor;
+            let material = 100 + (uploadedFiles.length * 60); // Random Material Logic
+            let discount = 50; // Flat discount
+            let total = labor + material - discount;
+
+            // Display
+            document.getElementById('billLabor').innerText = "₹" + labor;
+            document.getElementById('billMaterial').innerText = "₹" + material;
+            document.getElementById('billDiscount').innerText = "- ₹" + discount;
+            document.getElementById('billTotal').innerText = "₹" + total;
+
+            // SAVE FOR TRACKING PAGE
+            localStorage.setItem('billLabor', labor);
+            localStorage.setItem('billMaterial', material);
+            localStorage.setItem('billDiscount', discount);
+            localStorage.setItem('billTotal', total);
+        }
+
+        function detectNavLocation() {
+            let btn = document.getElementById('navLocBtn');
+            if (!navigator.geolocation) { alert("Geolocation not supported."); return; }
+            btn.classList.add('loading'); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finding...';
+            navigator.geolocation.getCurrentPosition((pos) => {
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=18&addressdetails=1`)
+                    .then(r => r.json()).then(d => {
+                        let loc = (d.address.suburb || d.address.town || d.address.city || "Location").replace(/Ward No \d+|Zone-\d+/i, '').trim();
+                        updateCityUI(loc); btn.classList.remove('loading'); btn.innerHTML = '<i class="fas fa-check"></i> Found'; setTimeout(() => btn.innerHTML='<i class="fas fa-location-arrow"></i> Detect',3000);
+                    });
+            });
+        }
+        function updateCityUI(city) { 
+            let s = document.getElementById('citySelector'); 
+            let exists = false;
+            for(let i=0; i<s.options.length; i++) if(s.options[i].value === city) { s.selectedIndex=i; exists=true; break; }
+            if(!exists) { let o=document.createElement("option"); o.text="📍 "+city; o.value=city; s.add(o,0); s.selectedIndex=0; }
+            localStorage.setItem('currentCity', city);
+        }
+        function changeCityManual() { localStorage.setItem('currentCity', document.getElementById('citySelector').value); }
+
+        function showAutoSuggest() {
+            let val = document.getElementById('issueInput').value.toLowerCase();
+            let box = document.getElementById('suggestionsBox'); box.innerHTML = "";
+            if(val.length === 0) { box.style.display = "none"; return; }
+            let data = serviceData[currentService] || serviceData["Other"];
+            let matches = data.sentences.filter(s => s.toLowerCase().includes(val));
+            if(matches.length > 0) {
+                box.style.display = "flex";
+                matches.forEach(m => {
+                    let div = document.createElement("div"); div.className="suggestion-item";
+                    div.innerHTML = `<i class="fas fa-quote-left" style="color:#ddd;"></i> ${m}`;
+                    div.onclick = function() { document.getElementById('issueInput').value = m; box.style.display = "none"; };
+                    box.appendChild(div);
+                });
+            } else { box.style.display = "none"; }
+        }
+        document.addEventListener('click', e => { if(!document.querySelector('.custom-input-wrapper').contains(e.target)) document.getElementById('suggestionsBox').style.display = 'none'; });
+
+        function startVoiceInput() {
+            if ('webkitSpeechRecognition' in window) {
+                const rec = new webkitSpeechRecognition(); rec.lang = 'en-US'; 
+                document.getElementById('micBtn').classList.add("mic-listening");
+                document.getElementById('issueInput').placeholder = "Listening...";
+                rec.onresult = e => { document.getElementById('issueInput').value = e.results[0][0].transcript; document.getElementById('micBtn').classList.remove("mic-listening"); };
+                rec.onerror = () => document.getElementById('micBtn').classList.remove("mic-listening");
+                rec.start();
+            } else alert("Voice not supported");
+        }
+
+        function closePayment() { document.getElementById('paymentModal').style.display = 'none'; }
+        
+        const API_URL = 'http://localhost:3000/api';
+        
+        function processPayment(type) {
+            let token = localStorage.getItem('token');
+            let userId = localStorage.getItem('userId');
+            
+            if(!token) { 
+                alert("⚠ Please Login first!"); 
+                window.location.href = "login.html"; 
+                return; 
+            }
+
+            // Get current location
+            let city = localStorage.getItem('currentCity') || '';
+            let address = localStorage.getItem('userAddress') || '';
+            
+            // Map service type
+            const serviceMap = {
+                'Plumbing': 'plumber',
+                'Electrical': 'electrician',
+                'Carpentry': 'carpenter',
+                'Painting': 'painter',
+                'Cleaning': 'cleaner',
+                'Driving': 'driver',
+                'Mechanic': 'mechanic',
+                'Appliance': 'appliance',
+                'Pest Control': 'pest_control',
+                'Other': 'other'
+            };
+            
+            let serviceType = serviceMap[currentService] || 'other';
+            let issueDesc = document.getElementById('issueInput').value;
+            let estimatedCost = parseInt(localStorage.getItem('billTotal')) || 0;
+
+            // Save to backend API
+            fetch(`${API_URL}/services`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    serviceType,
+                    title: `${currentService} Service Request`,
+                    description: issueDesc,
+                    address: { city, street: address },
+                    location: {
+                        // Coordinates will be empty initially, worker can update
+                        coordinates: [0, 0]
+                    },
+                    estimatedCost
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    localStorage.setItem('lastServiceId', data.data.serviceRequest._id);
+                    localStorage.setItem('userService', currentService);
+                    localStorage.setItem('issueDesc', issueDesc);
+                    localStorage.setItem('paymentMode', (type === 'online') ? 'Online' : 'Cash');
+                    
+                    closePayment();
+                    document.getElementById('searchOverlay').style.display = "flex";
+                    setTimeout(() => { document.getElementById('searchMsg').innerText = "Finding Expert Nearby..."; }, 2000);
+                    setTimeout(() => { window.location.href = "tracking.html"; }, 4000);
+                } else {
+                    alert("❌ " + data.message);
+                    document.getElementById('searchOverlay').style.display = "none";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Fallback to local storage if API fails
+                localStorage.setItem('userService', currentService);
+                localStorage.setItem('issueDesc', document.getElementById('issueInput').value);
+                localStorage.setItem('paymentMode', (type === 'online') ? 'Online' : 'Cash');
+                
+                closePayment();
+                document.getElementById('searchOverlay').style.display = "flex";
+                setTimeout(() => { document.getElementById('searchMsg').innerText = "Verified Professional Found!"; }, 2000);
+                setTimeout(() => { window.location.href = "tracking.html"; }, 4000);
+            });
+        }
+    </script>
+</body>
+</html>

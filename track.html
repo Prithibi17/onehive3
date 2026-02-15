@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Application | OneHive</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- THEME COLORS --- */
+        :root { 
+            --primary: #082347; 
+            --secondary: #FF8800; /* Golden Orange */
+            --bg-color: #EEF2F6;  
+            --success: #2ecc71; /* Green for Completed */
+            --process: #f39c12; /* Orange for In-Progress */
+            --pending: #bdc3c7; /* Grey for Pending */
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background-color: var(--bg-color); color: #333; }
+
+        /* HEADER */
+        header { 
+            background: var(--primary); padding: 15px 5%; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15); 
+            display: flex; justify-content: space-between; align-items: center; 
+            position: sticky; top: 0; z-index: 100; 
+        }
+        .logo-container { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .logo-img { height: 48px; width: 48px; object-fit: contain; background: white; border-radius: 50%; padding: 4px; } 
+        
+        .logo-text { font-size: 24px; font-weight: 800; color: white; }
+        .logo-text span { color: var(--secondary); }
+
+        .back-btn { 
+            color: rgba(255,255,255,0.9); text-decoration: none; font-weight: 600; 
+            display: flex; align-items: center; gap: 8px; padding: 8px 16px; 
+            border-radius: 30px; border: 1px solid rgba(255,255,255,0.3); 
+            font-size: 14px; transition: 0.3s;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.1); }
+
+        /* MAIN CONTAINER */
+        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+
+        /* SEARCH BOX CARD */
+        .track-card { 
+            background: white; padding: 40px; border-radius: 20px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08); text-align: center; 
+            margin-bottom: 30px;
+        }
+        .track-card h2 { color: var(--primary); font-size: 28px; margin-bottom: 10px; }
+        .track-card p { color: #666; margin-bottom: 25px; }
+
+        .input-group { display: flex; gap: 10px; max-width: 500px; margin: 0 auto; position: relative; }
+        .input-box { 
+            flex: 1; padding: 16px 20px; border: 2px solid #eee; border-radius: 50px; 
+            font-size: 16px; outline: none; transition: 0.3s; width: 100%;
+        }
+        .input-box:focus { border-color: var(--secondary); box-shadow: 0 0 0 4px rgba(255, 136, 0, 0.1); }
+        
+        .btn-track { 
+            background: linear-gradient(135deg, #FFAA00, #FF7700); color: white; border: none; 
+            padding: 16px 35px; border-radius: 50px; font-weight: 700; cursor: pointer; 
+            transition: 0.3s; box-shadow: 0 8px 20px rgba(255, 119, 0, 0.3); white-space: nowrap;
+        }
+        .btn-track:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(255, 119, 0, 0.4); }
+
+        /* RESULT SECTION (HIDDEN BY DEFAULT) */
+        #resultSection { display: none; animation: slideUp 0.5s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* WORKER PROFILE CARD */
+        .profile-card { 
+            background: white; padding: 25px; border-radius: 15px; 
+            display: flex; align-items: center; gap: 20px; margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-left: 5px solid var(--secondary);
+        }
+        .profile-icon { 
+            width: 70px; height: 70px; background: #FFF4E6; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 30px; color: var(--secondary);
+        }
+        .profile-details h3 { color: var(--primary); font-size: 22px; margin-bottom: 5px; }
+        .profile-details p { margin: 2px 0; font-size: 14px; color: #555; }
+        .profile-details strong { color: var(--primary); }
+
+        /* TIMELINE STYLES */
+        .timeline-box { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+        .timeline-header { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+
+        .timeline { position: relative; padding-left: 20px; }
+        /* Vertical Line */
+        .timeline::before { 
+            content: ''; position: absolute; left: 39px; top: 10px; bottom: 50px; 
+            width: 3px; background: #eee; z-index: 0; 
+        }
+
+        .step { position: relative; margin-bottom: 40px; display: flex; align-items: flex-start; z-index: 1; }
+        .step:last-child { margin-bottom: 0; }
+
+        /* Step Icons */
+        .step-icon { 
+            width: 40px; height: 40px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 16px; margin-right: 20px; border: 3px solid white; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex-shrink: 0;
+        }
+
+        /* Step Content */
+        .step-content { flex: 1; }
+        .step-title { font-size: 16px; font-weight: 700; color: #888; margin-bottom: 5px; }
+        .step-desc { font-size: 13px; color: #999; line-height: 1.5; }
+
+        /* STATUS COLORS */
+        /* 1. Completed (Green) */
+        .step.completed .step-icon { background: var(--success); color: white; border-color: var(--success); }
+        .step.completed .step-title { color: var(--primary); }
+        .step.completed .step-desc { color: #555; }
+
+        /* 2. Active (Orange Processing) */
+        .step.active .step-icon { background: white; border: 3px solid var(--secondary); color: var(--secondary); animation: pulse 1.5s infinite; }
+        .step.active .step-title { color: var(--secondary); }
+        .step.active .step-desc { color: var(--secondary); font-weight: 600; }
+
+        /* 3. Pending (Grey) */
+        .step.pending .step-icon { background: #eee; color: #bbb; }
+
+        /* Training Slot Box */
+        .slot-card { 
+            background: #E3F2FD; border: 1px dashed #2196F3; padding: 15px; 
+            border-radius: 10px; margin-top: 10px; display: none; 
+        }
+        .slot-title { font-size: 12px; font-weight: 700; color: #1976D2; text-transform: uppercase; letter-spacing: 1px; }
+        .slot-time { font-size: 20px; font-weight: 800; color: var(--primary); margin-top: 5px; }
+        .reschedule-btn { 
+            background: none; border: none; color: #e74c3c; font-weight: 600; 
+            font-size: 12px; cursor: pointer; margin-top: 5px; text-decoration: underline; 
+        }
+
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 136, 0, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 136, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 136, 0, 0); } }
+
+        /* ERROR MESSAGE */
+        .error-msg { color: #e74c3c; font-size: 14px; margin-top: 15px; display: none; font-weight: 600; }
+
+        @media(max-width: 600px) {
+            header { padding: 15px 4%; }
+            .track-card { padding: 25px; }
+            .input-group { flex-direction: column; }
+            .btn-track { width: 100%; }
+            .profile-card { flex-direction: column; text-align: center; }
+            .profile-icon { margin: 0 auto; }
+            .timeline::before { left: 19px; }
+            .step-icon { width: 30px; height: 30px; font-size: 12px; margin-right: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo-container">
+            <img src="img.jpg" alt="Logo" class="logo-img">
+            <div class="logo-text-group">
+                <div class="logo-text">One<span>Hive</span></div>
+            </div>
+        </a>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="login.html" style="background: #FF8800; color: white; text-decoration: none; padding: 8px 20px; border-radius: 20px; font-weight: 600; font-size: 14px;">Login</a>
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> <span>Back</span></a>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <div class="track-card">
+            <h2>Track Application</h2>
+            <p>Enter your Application ID to check verification status.</p>
+            <div class="input-group">
+                <input type="text" id="appIdInput" class="input-box" placeholder="Example: OH-PARTNER-0001">
+                <button class="btn-track" onclick="trackStatus()">Track Now</button>
+            </div>
+            <div id="errorMsg" class="error-msg"><i class="fas fa-exclamation-circle"></i> Application ID not found. Please check again.</div>
+        </div>
+
+        <div id="resultSection">
+            
+            <div class="profile-card">
+                <div class="profile-icon"><i class="fas fa-user"></i></div>
+                <div class="profile-details">
+                    <h3 id="uName">Loading...</h3>
+                    <p><strong>Service:</strong> <span id="uService">--</span></p>
+                    <p><strong>Application ID:</strong> <span id="uAppId">--</span></p>
+                    <p><strong>Phone:</strong> <span id="uMobile">--</span></p>
+                </div>
+            </div>
+
+            <div class="timeline-box">
+                <div class="timeline-header">Application Status</div>
+                
+                <div class="timeline">
+                    <div class="step completed" id="step1">
+                        <div class="step-icon"><i class="fas fa-file-alt"></i></div>
+                        <div class="step-content">
+                            <div class="step-title">Application Received</div>
+                            <div class="step-desc">Your form has been successfully submitted.</div>
+                        </div>
+                    </div>
+
+                    <div class="step pending" id="step2">
+                        <div class="step-icon"><i class="fas fa-id-card"></i></div>
+                        <div class="step-content">
+                            <div class="step-title">Document Verification</div>
+                            <div class="step-desc">Please visit our centre with Original Aadhar & PAN Card. Our team will call you shortly.</div>
+                        </div>
+                    </div>
+
+                    <div class="step pending" id="step3">
+                        <div class="step-icon"><i class="fas fa-user-shield"></i></div>
+                        <div class="step-content">
+                            <div class="step-title">Police Verification</div>
+                            <div class="step-desc">Background check is under process.</div>
+                        </div>
+                    </div>
+
+                    <div class="step pending" id="step4">
+                        <div class="step-icon"><i class="fas fa-tools"></i></div>
+                        <div class="step-content">
+                            <div class="step-title">Skill Interview (Trial)</div>
+                            <div class="step-desc">Practical skill test at the centre to verify your work quality.</div>
+                        </div>
+                    </div>
+
+                    <div class="step pending" id="step5">
+                        <div class="step-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="step-content">
+                            <div class="step-title">Final Approval</div>
+                            <div class="step-desc">Congratulations! You are now an approved partner.</div>
+                        </div>
+                    </div>
+
+                    <div class="step pending" id="step6">
+                        <div class="step-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <div class="step-content">
+                            <div class="step-title">Training Slot</div>
+                            <div class="step-desc">Attend mandatory training to start getting orders.</div>
+                            
+                            <div class="slot-card" id="slotDetailBox">
+                                <div class="slot-title">Your Training Schedule</div>
+                                <div class="slot-time" id="slotTimeDisplay">--</div>
+                                <button class="reschedule-btn" onclick="requestReschedule()">Request Change</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        
+        function trackStatus() {
+            let inputId = document.getElementById('appIdInput').value.trim();
+            let errorMsg = document.getElementById('errorMsg');
+            let resultSection = document.getElementById('resultSection');
+
+            if (!inputId) {
+                errorMsg.style.display = 'block';
+                errorMsg.innerText = 'Please enter a Tracking ID';
+                resultSection.style.display = 'none';
+                return;
+            }
+
+            // Call backend API for tracking
+            fetch(`${API_URL}/workers/track/${inputId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Found! Show Data
+                        errorMsg.style.display = 'none';
+                        resultSection.style.display = 'block';
+
+                        const worker = data.data;
+                        
+                        // Fill Profile Data
+                        document.getElementById('uName').innerText = worker.name || 'N/A';
+                        document.getElementById('uService').innerText = worker.profession || 'N/A';
+                        document.getElementById('uAppId').innerText = worker.trackingId || inputId;
+                        document.getElementById('uMobile').innerText = worker.phone || 'N/A';
+
+                        // Map application status to stage
+                        // pending = 1, approved/verified = 6, rejected = -1
+                        let currentStage = 1;
+                        if (worker.applicationStatus === 'approved' || worker.verificationStatus === 'verified') {
+                            currentStage = 6; // Completed
+                        } else if (worker.applicationStatus === 'rejected') {
+                            currentStage = -1; // Rejected
+                        }
+                        
+                        let assignedSlot = "Pending";
+                        updateTimelineUI(currentStage, assignedSlot);
+                    } else {
+                        // Not Found
+                        errorMsg.style.display = 'block';
+                        errorMsg.innerText = data.message || 'Invalid Tracking ID';
+                        resultSection.style.display = 'none';
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    errorMsg.style.display = 'block';
+                    errorMsg.innerText = 'Server error. Please try again.';
+                    resultSection.style.display = 'none';
+                });
+        }
+
+        function updateTimeline(level, slotTime) {
+            // Reset all steps
+            for (let i = 1; i <= 6; i++) {
+                let step = document.getElementById('step' + i);
+                step.className = 'step pending'; // Reset to pending
+                
+                // Logic: 
+                // If i < level -> Completed (Green)
+                // If i == level -> Active (Orange)
+                // If i > level -> Pending (Grey)
+
+                if (i < level) {
+                    step.className = 'step completed';
+                    step.querySelector('.step-icon').innerHTML = '<i class="fas fa-check"></i>';
+                } else if (i === level) {
+                    step.className = 'step active';
+                    // Current active icon remains as defined in HTML
+                }
+            }
+
+            // Special Case: Training Slot (Step 6)
+            if (level === 6) {
+                document.getElementById('slotDetailBox').style.display = 'block';
+                document.getElementById('slotTimeDisplay').innerText = slotTime;
+            } else {
+                document.getElementById('slotDetailBox').style.display = 'none';
+            }
+        }
+
+        // Helper wrapper to match function call
+        function updateTimelineUI(level, slot) {
+            updateTimeline(level, slot);
+        }
+
+        function requestReschedule() {
+            alert("Request sent to Admin! Our team will call you to reschedule.");
+        }
+    </script>
+
+</body>
+</html>

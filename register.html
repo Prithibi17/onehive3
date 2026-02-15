@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneHive | Register</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Outfit', sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .box { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 380px; text-align: center; margin: 20px; }
+        h2 { color: #002244; margin-bottom: 15px; }
+        
+        .input-group { margin-bottom: 10px; text-align: left; position: relative; }
+        input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        
+        .location-btn { position: absolute; right: 5px; top: 12px; bottom: 5px; background: #e3f2fd; color: #002244; border: none; padding: 0 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: 0.3s; }
+        .location-btn:hover { background: #FF9900; color: white; }
+
+        /* Eye Icon Style */
+        .pass-icon { position: absolute; right: 15px; top: 20px; color: #888; cursor: pointer; font-size: 16px; }
+
+        /* --- RULES BOX CSS --- */
+        .rules-box { font-size: 12px; color: #666; background: #fff3cd; padding: 12px; border-radius: 5px; margin-top: 5px; border: 1px solid #ffeeba; line-height: 1.6; text-align: left; }
+        .rules-title { display: block; font-weight: bold; margin-bottom: 5px; color: #856404; }
+        
+        .rule-item { display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .rule-item i { font-size: 10px; color: #ccc; } 
+        
+        /* Valid State */
+        .valid { color: #155724; font-weight: 600; }
+        .valid i { color: #28a745; font-size: 12px; } 
+
+        .btn { background: #FF9900; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 15px; transition: 0.3s; }
+        .btn:hover { background: #002244; }
+        
+        .link { margin-top: 15px; display: block; font-size: 14px; color: #666; text-decoration: none; }
+        
+        /* BACK TO HOME LINK STYLE (Same as Login) */
+        .home-link { 
+            display: inline-block; margin-top: 15px; 
+            color: #777; font-size: 13px; text-decoration: none; 
+            border: 1px solid #ddd; padding: 8px 15px; border-radius: 20px;
+            transition: 0.3s;
+        }
+        .home-link:hover { background: #eee; color: #333; }
+
+        .fa-spin { animation: fa-spin 2s infinite linear; }
+        @keyframes fa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <!-- SIMPLE NAVBAR -->
+    <nav style="background: #082347; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <a href="index.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+            <img src="img.jpg" alt="Logo" style="height: 40px; width: 40px; object-fit: contain; background: white; border-radius: 50%; padding: 3px;">
+            <span style="font-size: 24px; font-weight: 800; color: white;">One<span style="color: #FF8800;">Hive</span></span>
+        </a>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="index.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 500; font-size: 14px;">Home</a>
+            <a href="login.html" style="background: #FF8800; color: white; text-decoration: none; padding: 8px 20px; border-radius: 20px; font-weight: 600; font-size: 14px;">Login</a>
+        </div>
+    </nav>
+
+    <div class="box">
+        <h2>Create Account</h2>
+        
+        <div class="input-group"><input type="text" id="name" placeholder="Full Name"></div>
+        <div class="input-group"><input type="email" id="email" placeholder="Email Address"></div>
+        
+        <div class="input-group" style="display: flex; gap: 10px;">
+            <input type="number" id="phone" placeholder="Mobile (Main)">
+            <input type="number" id="altPhone" placeholder="Alt. No. (Optional)">
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="address" placeholder="Address (Click Detect ->)">
+            <button class="location-btn" id="locBtn" onclick="detectLocationSmart()"><i class="fas fa-crosshairs" id="locIcon"></i> Detect</button>
+        </div>
+
+        <div class="input-group">
+            <input type="password" id="password" placeholder="Create Password" maxlength="10" onkeyup="validateRealTime()">
+            <i class="fas fa-eye-slash pass-icon" id="eyePass" onclick="togglePass('password', 'eyePass')"></i>
+        </div>
+
+        <div class="input-group">
+            <input type="password" id="confirmPassword" placeholder="Confirm Password" maxlength="10">
+            <i class="fas fa-eye-slash pass-icon" id="eyeConfirm" onclick="togglePass('confirmPassword', 'eyeConfirm')"></i>
+        </div>
+
+        <div class="rules-box">
+            <span class="rules-title">⚠️ Password Rules (Max 10 chars):</span>
+            <div id="rule-capital" class="rule-item"><i class="fas fa-circle"></i> 1 Uppercase (A-Z)</div>
+            <div id="rule-small" class="rule-item"><i class="fas fa-circle"></i> 1 Lowercase (a-z)</div>
+            <div id="rule-number" class="rule-item"><i class="fas fa-circle"></i> 1 Number (0-9)</div>
+            <div id="rule-special" class="rule-item"><i class="fas fa-circle"></i> 1 Special (@#$)</div>
+        </div>
+        
+        <button type="button" class="btn" onclick="registerUser(); return false;">Register</button>
+        <a href="login.html" class="link">Already have an account? Login</a>
+        
+        <a href="index.html" class="home-link"><i class="fas fa-arrow-left"></i> Back to Home</a>
+    </div>
+
+    <script>
+        console.log("Registration page loaded");
+        
+        // --- 1. EYE TOGGLE LOGIC ---
+        function togglePass(inputId, iconId) {
+            let input = document.getElementById(inputId);
+            let icon = document.getElementById(iconId);
+            
+            if (input.type === "password") {
+                input.type = "text"; 
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");           
+            } else {
+                input.type = "password"; 
+                icon.classList.remove("fa-eye");        
+                icon.classList.add("fa-eye-slash");    
+            }
+        }
+
+        // --- 2. REAL-TIME PASSWORD VALIDATION ---
+        function validateRealTime() {
+            let password = document.getElementById('password').value;
+            const hasCapital = /[A-Z]/.test(password);
+            const hasSmall = /[a-z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasSpecial = /[\W_]/.test(password);
+
+            function updateRule(elementId, isValid) {
+                let el = document.getElementById(elementId);
+                let icon = el.querySelector("i");
+                if (isValid) {
+                    el.classList.add("valid");
+                    icon.classList.remove("fa-circle");
+                    icon.classList.add("fa-check-circle");
+                } else {
+                    el.classList.remove("valid");
+                    icon.classList.remove("fa-check-circle");
+                    icon.classList.add("fa-circle");
+                }
+            }
+            updateRule("rule-capital", hasCapital);
+            updateRule("rule-small", hasSmall);
+            updateRule("rule-number", hasNumber);
+            updateRule("rule-special", hasSpecial);
+        }
+
+        // --- 3. LOCATION LOGIC ---
+        function detectLocationSmart() {
+            const addressField = document.getElementById('address');
+            const icon = document.getElementById('locIcon');
+            addressField.value = "Locating...";
+            icon.classList.add("fa-spinner", "fa-spin"); icon.classList.remove("fa-crosshairs");
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => { 
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
+                    .then(res => res.json()).then(data => successLocation(data.display_name))
+                    .catch(() => { addressField.value = ""; resetIcon(); });
+                }, () => { alert("Permission denied."); resetIcon(); });
+            } else { alert("GPS not supported."); resetIcon(); }
+
+            function successLocation(addr) { 
+                addressField.value = addr; 
+                icon.classList.remove("fa-spinner", "fa-spin"); 
+                icon.classList.add("fa-check"); 
+            }
+            function resetIcon() { 
+                addressField.value = "";
+                icon.classList.remove("fa-spinner", "fa-spin"); 
+                icon.classList.add("fa-crosshairs"); 
+            }
+        }
+
+        // --- 4. REGISTER LOGIC ---
+        const API_URL = 'http://127.0.0.1:3000/api';
+        
+        async function registerUser() {
+            console.log("Register function called");
+            try {
+                let name = document.getElementById('name').value;
+                let email = document.getElementById('email').value.trim().toLowerCase();
+                let phone = document.getElementById('phone').value;
+                let address = document.getElementById('address').value;
+                let password = document.getElementById('password').value;
+                let confirmPassword = document.getElementById('confirmPassword').value;
+
+                console.log("Form values:", { name, email, phone, address });
+
+                // Basic Validation
+                if(!name || !email || !phone || !address || !password) { alert("Please fill all details!"); return; }
+                if(password !== confirmPassword) { alert("❌ Passwords do not match!"); return; }
+                
+                // Password Regex
+                const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{1,10}$/;
+                if(!strongPasswordRegex.test(password)) { alert("❌ Weak Password! Make sure rules are green."); return; }
+
+                console.log("Calling registration API...");
+
+                // Call API
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, phone, password, role: 'customer' })
+                });
+                
+                const data = await response.json();
+                console.log("API Response:", data);
+                
+                if (data.success) {
+                    alert("✅ Account Created Successfully! Now please Login."); 
+                    window.location.href = "login.html";
+                } else {
+                    alert("❌ " + data.message);
+                }
+            } catch (error) {
+                console.error('Registration Error:', error);
+                alert("❌ Registration failed: " + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

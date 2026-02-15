@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneHive | Premium Home Services</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- THEME COLORS --- */
+        :root { 
+            --primary: #082347; 
+            --secondary: #FF8800; /* Golden Orange */
+            --bg-color: #EEF2F6;  
+            --text-main: #082347; 
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); overflow-x: hidden; }
+        
+        /* --- NAVBAR --- */
+        nav { 
+            height: 90px; 
+            padding: 0 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: var(--primary); 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+        }
+        
+        .nav-left { display: flex; align-items: center; }
+
+        /* LOGO STYLES */
+        .logo-container { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .logo-img { height: 48px; width: 48px; object-fit: contain; background: white; border-radius: 50%; padding: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); } 
+        
+        .logo-text-group { display: flex; flex-direction: column; justify-content: center; line-height: 1.1; }
+
+        .logo-text { font-size: 26px; font-weight: 800; color: white; letter-spacing: -0.5px; }
+        .logo-text span { color: var(--secondary) !important; }
+
+        .logo-subtext { 
+            font-size: 12px; color: #ddd; font-weight: 500; font-style: italic; margin-top: 2px;
+            display: flex; align-items: center;
+        }
+        .logo-subtext span { color: var(--secondary); font-weight: 700; } 
+        
+        /* CUTE BEE LOGO */
+        .custom-bee-logo {
+            width: 16px;  
+            height: 16px; 
+            margin-left: 5px;
+            transition: 0.3s ease;
+            transform: translateY(2px); 
+        }
+        .logo-container:hover .custom-bee-logo {
+            transform: scale(1.2) rotate(10deg) translateY(2px);
+        }
+
+        .nav-right { display: flex; align-items: center; gap: 20px; }
+
+        /* LOCATION UI */
+        .location-wrapper { 
+            display: flex; align-items: center; gap: 10px; 
+            background: #fff; padding: 5px 5px 5px 15px; 
+            border-radius: 50px; border: 2px solid transparent; 
+            transition: 0.3s; 
+        }
+        .location-wrapper:hover { border-color: var(--secondary); }
+        .location-wrapper i { color: var(--secondary); } 
+        
+        .city-select { border: none; background: transparent; font-weight: 700; color: var(--primary); outline: none; font-size: 15px; cursor: pointer; max-width: 120px; }
+        
+        /* DETECT BUTTON */
+        .detect-btn { 
+            background: linear-gradient(135deg, #FFAA00, #FF7700); 
+            color: white; border: none; padding: 8px 18px; border-radius: 50px; cursor: pointer; 
+            font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; 
+            transition: 0.3s; box-shadow: 0 4px 12px rgba(255, 119, 0, 0.3); 
+        }
+        .detect-btn:hover { background: var(--primary); box-shadow: none; }
+
+        /* ✅ UPDATED MENU BUTTON (Orange Lines -> Blue on Click) */
+        .menu-btn { 
+            width: 45px; height: 45px; 
+            background: #ffffff; 
+            border: none;
+            border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            transition: all 0.3s ease; 
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* Default: Icon is Orange */
+        .menu-btn i { 
+            font-size: 22px; 
+            color: var(--secondary); /* ORANGE */
+            transition: 0.3s;
+        } 
+        
+        /* Click/Hover: Background Light Blue, Icon turns Blue */
+        .menu-btn:hover, .menu-btn:active { 
+            background: #E3F2FD; 
+            transform: translateY(-2px); 
+        }
+        .menu-btn:hover i, .menu-btn:active i { 
+            color: var(--primary); /* BLUE */
+        }
+
+        /* SIDEBAR MENU */
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1001; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .sidebar { position: fixed; top: 0; right: -320px; width: 300px; height: 100%; background: white; z-index: 1002; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: -5px 0 30px rgba(0,0,0,0.1); padding: 25px; display: flex; flex-direction: column; overflow-y: auto; }
+        
+        .sidebar.active { right: 0; }
+        .sidebar-overlay.active { opacity: 1; visibility: visible; }
+
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .close-btn { width: 35px; height: 35px; border-radius: 50%; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #555; cursor: pointer; transition: all 0.3s ease; }
+        .close-btn:hover { background: #ffebee; color: red; transform: rotate(90deg); }
+
+        .menu-section-title { font-size: 11px; font-weight: 800; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-top: 25px; margin-bottom: 10px; padding-left: 10px; }
+        
+        /* Menu Links */
+        .menu-link { text-decoration: none; color: var(--primary); font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 8px; transition: 0.2s; }
+        .menu-link i { width: 25px; text-align: center; font-size: 18px; color: #888; transition: 0.2s; }
+        .menu-link:hover { 
+            background: #E3F2FD; 
+            color: var(--primary); 
+            padding-left: 18px; 
+        }
+        .menu-link:hover i { color: var(--primary); }
+
+        /* SLIDER SECTION */
+        .slider-section { width: 100%; padding: 0 5%; margin-top: 30px; margin-bottom: 30px; }
+        .slider-container { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; overflow: hidden; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .slides { display: flex; transition: transform 0.5s ease-in-out; }
+        .slide { min-width: 100%; height: 260px; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        
+        .banner-blue { background: linear-gradient(90deg, #1e88e5 0%, #1565c0 100%); color: white; width: 100%; height: 100%; display: flex; align-items: center; padding: 0 10%; gap: 50px; }
+        .banner-content { text-align: left; z-index: 2; }
+        .banner-content h2 { font-size: 30px; margin-bottom: 8px; font-weight: 600; }
+        .banner-content p { font-size: 38px; font-weight: 800; margin-bottom: 5px; }
+        .banner-img { height: 180px; width: 180px; border-radius: 15px; object-fit: cover; box-shadow: 0 8px 20px rgba(0,0,0,0.3); border: 4px solid rgba(255,255,255,0.3); background: #fff; }
+        .bg-1 { background: linear-gradient(90deg, #1e88e5 0%, #1565c0 100%); }
+        .bg-2 { background: linear-gradient(90deg, #d32f2f 0%, #b71c1c 100%); }
+        
+        .slider-dots { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
+        .dot { width: 10px; height: 10px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; }
+        .dot.active { background: white; width: 25px; border-radius: 10px; }
+
+        .slider-arrow {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.4); color: var(--primary);
+            border: none; width: 40px; height: 40px; border-radius: 50%;
+            font-size: 18px; cursor: pointer; transition: 0.3s; z-index: 10;
+            display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+        }
+        .slider-arrow:hover { background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); color: var(--secondary); }
+        .prev-arrow { left: 15px; }
+        .next-arrow { right: 15px; }
+
+        /* HERO TEXT */
+        .hero { min-height: auto; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px 20px 60px 20px; }
+        .tag { background: #FFF4E6; color: var(--secondary); padding: 8px 22px; border-radius: 30px; font-weight: 700; font-size: 14px; margin-bottom: 25px; border: 1px solid #FFE0B2; display: inline-flex; align-items: center; gap: 10px; }
+        
+        .hero h1 { font-family: 'Playfair Display', serif; font-size: 4.8rem; line-height: 1.1; margin-bottom: 20px; color: #082347; font-weight: 800; letter-spacing: -1.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .hero h1 span { background: linear-gradient(135deg, #FFB700, #FF6200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-style: italic; font-weight: 800; display: block; margin-top: 5px; } 
+        .hero p { font-size: 1.25rem; color: #555; max-width: 650px; margin-bottom: 35px; line-height: 1.6; font-weight: 500; }
+        
+        /* SEARCH BOX */
+        .search-container { position: relative; width: 100%; max-width: 700px; z-index: 50; }
+        .search-box { background: white; padding: 10px 10px 10px 25px; border-radius: 60px; display: flex; align-items: center; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #eee; transition: 0.3s; position: relative; }
+        .search-box:focus-within { border-color: var(--secondary); box-shadow: 0 10px 30px rgba(255, 136, 0, 0.1); }
+        .search-box input { flex: 1; border: none; outline: none; font-size: 18px; color: var(--primary); background: transparent; }
+        .search-btn { background: var(--secondary); color: white; border: none; padding: 16px 40px; border-radius: 50px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 16px; }
+        .search-btn:hover { background: var(--primary); box-shadow: 0 5px 15px rgba(8, 35, 71, 0.3); }
+
+        .suggestions-list { position: absolute; top: 115%; left: 10px; right: 10px; background: white; border-radius: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); display: none; flex-direction: column; overflow: hidden; z-index: 100; border: 1px solid #eee; text-align: left; max-height: 300px; overflow-y: auto; }
+        .suggestion-item { padding: 14px 20px; cursor: pointer; font-size: 16px; color: #555; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; gap: 10px; }
+        .suggestion-item:hover { background: #FFF4E6; color: var(--secondary); font-weight: 600; padding-left: 25px; }
+        .suggestion-item i { color: var(--secondary); font-size: 14px; }
+
+        /* SERVICES GRID */
+        .services { padding: 60px 8%; }
+        .section-header h2 { font-family: 'Playfair Display', serif; font-size: 38px; color: #082347; font-weight: 800; text-align: center; margin-bottom: 50px; }
+        
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; }
+        
+        .card { background: white; border: 1px solid #f0f0f0; padding: 35px 20px; border-radius: 25px; text-align: center; cursor: pointer; transition: 0.3s; text-decoration: none; color: inherit; display: block; position: relative; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .card:hover { transform: translateY(-8px); border-color: var(--secondary); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+        
+        .icon-circle { width: 80px; height: 80px; margin: 0 auto 20px; background: #F4F8FB; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--primary); transition: 0.3s; }
+        .card:hover .icon-circle { background: var(--primary); color: white; transform: scale(1.1); }
+        
+        .card h3 { font-size: 20px; margin-bottom: 8px; font-weight: 700; }
+        .card p { font-size: 14px; color: #777; }
+
+        @media(max-width: 992px) {
+            .hero h1 { font-size: 3.5rem; }
+            .grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media(max-width: 768px) { 
+            nav { height: 70px; padding: 0 15px; }
+            .logo-img { height: 35px; } .logo-text { font-size: 20px; } .logo-subtext { font-size: 10px; }
+            .nav-right { gap: 10px; } .detect-btn span { display: none; } 
+            .detect-btn { padding: 8px; width: 35px; height: 35px; border-radius: 50%; justify-content: center; } 
+            .city-select { max-width: 80px; font-size: 12px; }
+            .menu-btn { width: 38px; height: 38px; }
+            .hero { padding-top: 100px; min-height: 60vh; } .hero h1 { font-size: 2.5rem; } .hero p { font-size: 1rem; }
+            .search-box { padding: 8px 8px 8px 15px; } .search-box input { font-size: 16px; }
+            .search-btn { padding: 12px 25px; font-size: 14px; }
+            .slide { height: auto; min-height: 200px; }
+            .banner-blue { flex-direction: column-reverse; text-align: center; justify-content: center; padding: 20px; gap: 10px; }
+            .banner-content h2 { font-size: 20px; } .banner-content p { font-size: 24px; }
+            .banner-img { height: 100px; width: 100px; border: 3px solid rgba(255,255,255,0.3); }
+            .slider-arrow { width: 30px; height: 30px; font-size: 14px; } .prev-arrow { left: 10px; } .next-arrow { right: 10px; }
+            .grid { grid-template-columns: repeat(2, 1fr); gap: 15px; } 
+            .card { padding: 25px 10px; border-radius: 20px; } .icon-circle { width: 60px; height: 60px; font-size: 24px; margin-bottom: 15px; }
+            .card h3 { font-size: 16px; margin-bottom: 5px; } .card p { font-size: 12px; }
+            .services { padding: 40px 5%; } .section-header h2 { font-size: 28px; margin-bottom: 30px; }
+        }
+
+        @media(max-width: 480px) {
+            .hero h1 { font-size: 2rem; } .location-wrapper { padding: 4px; } .city-select { max-width: 60px; font-size: 11px; }
+        }
+    </style>
+</head>
+<body onload="initPage()">
+    <nav>
+        <div class="nav-left">
+            <a href="#" class="logo-container">
+                <img src="img.jpg" alt="Logo" class="logo-img">
+                <div class="logo-text-group">
+                    <span class="logo-text">One<span>Hive</span></span>
+                    <span class="logo-subtext">Like Bee<span>hive</span> 
+                        <svg class="custom-bee-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M25 45 C10 45 5 25 25 15 C45 5 50 35 35 45 Z" fill="#ADD8E6" stroke="#082347" stroke-width="2"/>
+                            <path d="M75 45 C90 45 95 25 75 15 C55 5 50 35 65 45 Z" fill="#ADD8E6" stroke="#082347" stroke-width="2"/>
+                            <path d="M40 30 Q35 10 25 15" stroke="#082347" stroke-width="3" fill="none"/>
+                            <path d="M60 30 Q65 10 75 15" stroke="#082347" stroke-width="3" fill="none"/>
+                            <ellipse cx="50" cy="55" rx="30" ry="35" fill="#FF8800" stroke="#082347" stroke-width="2"/>
+                            <path d="M25 50 Q50 60 75 50" stroke="#082347" stroke-width="6" fill="none"/>
+                            <path d="M28 65 Q50 75 72 65" stroke="#082347" stroke-width="6" fill="none"/>
+                            <circle cx="40" cy="45" r="4" fill="#082347"/>
+                            <circle cx="60" cy="45" r="4" fill="#082347"/>
+                            <circle cx="42" cy="43" r="1.5" fill="white"/>
+                            <circle cx="62" cy="43" r="1.5" fill="white"/>
+                            <path d="M45 55 Q50 60 55 55" stroke="#082347" stroke-width="2" fill="none"/>
+                            <circle cx="35" cy="52" r="3" fill="#FFB6C1" opacity="0.8"/>
+                            <circle cx="65" cy="52" r="3" fill="#FFB6C1" opacity="0.8"/>
+                            <path d="M50 90 L45 80 L55 80 Z" fill="#082347"/>
+                        </svg>
+                    </span>
+                </div>
+            </a>
+        </div>
+
+        <div class="nav-right">
+            <div class="location-wrapper">
+                <i class="fas fa-map-marker-alt"></i>
+                <select id="citySelector" class="city-select" onchange="changeCityManual()">
+                    <option value="" disabled selected>Select City</option>
+                    <option value="Etawah, Uttar Pradesh">Etawah</option>
+                    <option value="Agra">Agra</option>
+                    <option value="Delhi">Delhi</option>
+                    <option value="Jaipur">Jaipur</option>
+                    <option value="Mumbai">Mumbai</option>
+                </select>
+                <button class="detect-btn" id="navLocBtn" onclick="detectNavLocation()">
+                    <i class="fas fa-location-arrow"></i> <span>Detect</span>
+                </button>
+            </div>
+            
+            <button class="menu-btn" onclick="toggleMenu()" title="Open Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3 style="color:var(--primary); font-size:22px; display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-bars" style="color:var(--secondary);"></i> Menu
+            </h3>
+            <div class="close-btn" onclick="toggleMenu()">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+        
+        <div class="menu-links">
+            <a href="index.html" class="menu-link"><i class="fas fa-home"></i> Home</a>
+            
+            <div class="menu-section-title">For Customers</div>
+            <div id="auth-buttons">
+                <a href="login.html" class="menu-link"><i class="fas fa-sign-in-alt"></i> Login</a>
+                <a href="register.html" class="menu-link"><i class="fas fa-user-plus"></i> Register</a>
+            </div>
+            <div id="user-display" style="display:none;">
+                <div class="menu-link" style="cursor:default; background:#f0f8ff;">
+                    <i class="fas fa-user-circle" style="color:var(--secondary);"></i> 
+                    <span style="color:var(--secondary); font-weight:700;">Hi, <span id="display-name" style="color:var(--primary);">User</span></span>
+                </div>
+                <div class="menu-link" onclick="logout()" style="cursor:pointer; color:#d32f2f;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </div>
+
+            <div class="menu-section-title">For Partners / Workers</div>
+            <a href="worker-register.html" class="menu-link"><i class="fas fa-briefcase"></i> Partner</a>
+            <a href="worker-register.html" class="menu-link"><i class="fas fa-user-plus"></i> Apply for Job</a>
+            <a href="track.html" class="menu-link"><i class="fas fa-search"></i> Track Application</a>
+            
+            <div class="menu-section-title">Support</div>
+            <a href="#" class="menu-link"><i class="fas fa-headset"></i> Help Center</a>
+            
+            <div class="menu-section-title">Admin</div>
+            <a href="admin.html" class="menu-link"><i class="fas fa-shield-alt"></i> Admin Login</a>
+        </div>
+    </div>
+
+    <div class="slider-section">
+        <div class="slider-container" id="sliderContainer">
+            <div class="slides" id="slides">
+                <div class="slide">
+                    <div class="banner-blue bg-1">
+                        <div class="banner-content">
+                            <h2>Mattress Cleaning</h2>
+                            <p>From ₹2,999</p>
+                            <span>Deep vacuuming & Sanitization</span>
+                        </div>
+                        <img src="https://images.pexels.com/photos/6489734/pexels-photo-6489734.jpeg?auto=compress&cs=tinysrgb&w=400" class="banner-img" alt="Mattress">
+                    </div>
+                </div>
+                <div class="slide">
+                    <div class="banner-blue bg-2">
+                        <div class="banner-content">
+                            <h2>AC Servicing</h2>
+                            <p>Upto 40% OFF</p>
+                            <span>Verified Experts | Fixed Price</span>
+                        </div>
+                        <img src="https://images.pexels.com/photos/11267272/pexels-photo-11267272.jpeg?auto=compress&cs=tinysrgb&w=400" class="banner-img" alt="AC Repair">
+                    </div>
+                </div>
+            </div>
+            <button class="slider-arrow prev-arrow" onclick="prevSlide()"><i class="fas fa-chevron-left"></i></button>
+            <button class="slider-arrow next-arrow" onclick="nextSlide()"><i class="fas fa-chevron-right"></i></button>
+            <div class="slider-dots" id="dots">
+                <div class="dot active" onclick="goToSlide(0)"></div>
+                <div class="dot" onclick="goToSlide(1)"></div>
+            </div>
+        </div>
+    </div>
+
+    <section class="hero">
+        <div class="tag"><i class="fas fa-check-circle"></i> India's #1 Home Service App</div>
+        <h1>Expert Services, <br><span>At Your Doorstep.</span></h1>
+        <p>OneHiveIndia connects you with verified professionals instantly. Reliable & Affordable.</p>
+        
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fas fa-search" style="color:#ccc; margin-right:10px;"></i>
+                <input type="text" id="searchInput" placeholder="Search for 'AC', 'Plumber'..." 
+                       onfocus="showSuggestions()" 
+                       onclick="showSuggestions()" 
+                       onkeyup="showSuggestions()" 
+                       onkeypress="handleEnter(event)" 
+                       autocomplete="off">
+                <button class="search-btn" onclick="performSearch()">Find Pros</button>
+            </div>
+            <div id="suggestionsBox" class="suggestions-list"></div>
+        </div>
+    </section>
+
+    <section class="services">
+        <div class="section-header"><h2>Our Services</h2></div>
+        <div class="grid">
+            <a href="service.html?service=Electrician" class="card">
+                <div class="icon-circle"><i class="fas fa-bolt"></i></div>
+                <h3>Electrician</h3><p>Wiring, Switch, Fan</p>
+            </a>
+            <a href="service.html?service=Plumber" class="card">
+                <div class="icon-circle"><i class="fas fa-faucet"></i></div>
+                <h3>Plumber</h3><p>Leaks, Pipe Fitting</p>
+            </a>
+            <a href="service.html?service=Painter" class="card">
+                <div class="icon-circle"><i class="fas fa-paint-roller"></i></div>
+                <h3>Painter</h3><p>Full Home, Touchups</p>
+            </a>
+            <a href="service.html?service=Carpenter" class="card">
+                <div class="icon-circle"><i class="fas fa-hammer"></i></div>
+                <h3>Carpenter</h3><p>Drill, Furniture</p>
+            </a>
+            <a href="service.html?service=AC Repair" class="card">
+                <div class="icon-circle"><i class="fas fa-snowflake"></i></div>
+                <h3>AC Repair</h3><p>Service, Gas Refill</p>
+            </a>
+            <a href="service.html?service=Appliances" class="card">
+                <div class="icon-circle"><i class="fas fa-tv"></i></div>
+                <h3>Appliances</h3><p>Fridge, Washing Machine</p>
+            </a>
+            <a href="service.html?service=Cleaning" class="card">
+                <div class="icon-circle"><i class="fas fa-broom"></i></div>
+                <h3>Cleaning</h3><p>Home, Sofa, Bath</p>
+            </a>
+            <a href="service.html?service=Gardening" class="card">
+                <div class="icon-circle"><i class="fas fa-leaf"></i></div>
+                <h3>Gardening</h3><p>Lawn Care, Plants</p>
+            </a>
+            <a href="service.html?service=Smart Home" class="card">
+                <div class="icon-circle"><i class="fas fa-wifi"></i></div>
+                <h3>Smart Home</h3><p>IoT, Automation Setup</p>
+            </a>
+            <a href="service.html?service=Home Security" class="card">
+                <div class="icon-circle"><i class="fas fa-shield-alt"></i></div>
+                <h3>Home Security</h3><p>CCTV, Smart Locks</p>
+            </a>
+            <a href="service.html?service=Interior Decor" class="card">
+                <div class="icon-circle"><i class="fas fa-couch"></i></div>
+                <h3>Interior Decor</h3><p>Wall Decor, Upgrades</p>
+            </a>
+            <a href="service.html?service=Other" class="card">
+                <div class="icon-circle"><i class="fas fa-plus"></i></div>
+                <h3>Other Services</h3><p>Custom Requests, More</p>
+            </a>
+        </div>
+    </section>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        function initPage() {
+            let savedCity = localStorage.getItem('currentCity');
+            if(savedCity) addCityOption(savedCity);
+
+            let isLoggedIn = localStorage.getItem('isLoggedIn');
+            let userName = localStorage.getItem('userName');
+            
+            if(isLoggedIn === 'true' && userName) {
+                document.getElementById('auth-buttons').style.display = 'none';
+                document.getElementById('user-display').style.display = 'block';
+                document.getElementById('display-name').innerText = userName;
+            } else {
+                document.getElementById('auth-buttons').style.display = 'block';
+                document.getElementById('user-display').style.display = 'none';
+            }
+        }
+
+        function logout() { 
+            localStorage.removeItem('isLoggedIn'); 
+            localStorage.removeItem('userName'); 
+            localStorage.removeItem('token');
+            localStorage.removeItem('userEmail');
+            location.reload(); 
+        }
+
+        function detectNavLocation() {
+            let btn = document.getElementById('navLocBtn');
+            if (!navigator.geolocation) { alert("Geolocation not supported."); return; }
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Detect</span>';
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`)
+                    .then(res => res.json())
+                    .then(data => {
+                        let city = data.city || data.locality || "My Location";
+                        addCityOption(city);
+                        localStorage.setItem('currentCity', city);
+                        btn.innerHTML = '<i class="fas fa-check"></i> <span>Found</span>';
+                        setTimeout(() => { btn.innerHTML = '<i class="fas fa-location-arrow"></i> <span>Detect</span>'; }, 2000);
+                    })
+                    .catch(() => { btn.innerHTML = '<i class="fas fa-location-arrow"></i> <span>Detect</span>'; });
+                },
+                (err) => { btn.innerHTML = '<i class="fas fa-location-arrow"></i> <span>Detect</span>'; },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
+
+        function changeCityManual() { 
+            let val = document.getElementById('citySelector').value;
+            localStorage.setItem('currentCity', val); 
+        }
+
+        function addCityOption(city) {
+            let selector = document.getElementById('citySelector');
+            for (let i = 0; i < selector.options.length; i++) {
+                if (selector.options[i].value === city) {
+                    selector.selectedIndex = i; 
+                    return; 
+                }
+            }
+            let option = document.createElement("option"); 
+            option.text = city; 
+            option.value = city; 
+            selector.add(option, 0); 
+            selector.selectedIndex = 0;
+        }
+
+        let currentSlide = 0;
+        const slides = document.getElementById('slides');
+        const dots = document.querySelectorAll('.dot');
+        const sliderContainer = document.getElementById('sliderContainer');
+        const totalSlides = 2; 
+
+        function nextSlide() {
+            currentSlide++;
+            if (currentSlide >= totalSlides) currentSlide = 0;
+            updateSlider();
+        }
+        function prevSlide() {
+            currentSlide--;
+            if (currentSlide < 0) currentSlide = totalSlides - 1;
+            updateSlider();
+        }
+        function goToSlide(index) {
+            currentSlide = index;
+            updateSlider();
+        }
+        function updateSlider() {
+            slides.style.transform = `translateX(-${currentSlide * 100}%)`;
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
+        }
+        let autoPlay = setInterval(nextSlide, 4000);
+        sliderContainer.onmouseenter = () => clearInterval(autoPlay);
+        sliderContainer.onmouseleave = () => autoPlay = setInterval(nextSlide, 4000);
+
+        const keywords = ["Electrician", "Plumber", "Painter", "Carpenter", "AC Repair", "Appliances", "Cleaning", "Gardening", "Smart Home", "Home Security", "Interior Decor", "Other Services"];
+
+        function showSuggestions() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let box = document.getElementById('suggestionsBox');
+            box.innerHTML = "";
+            let matches = [];
+            if(input.length === 0) { matches = keywords; } 
+            else { matches = keywords.filter(word => word.toLowerCase().includes(input)); }
+
+            if(matches.length > 0) {
+                box.style.display = "flex";
+                matches.forEach(match => {
+                    let div = document.createElement("div"); div.className = "suggestion-item";
+                    div.innerHTML = `<i class="fas fa-search"></i> ${match}`;
+                    div.onclick = function() { document.getElementById('searchInput').value = match; box.style.display = "none"; performSearch(); };
+                    box.appendChild(div);
+                });
+            } else { 
+                let div = document.createElement("div"); div.className = "suggestion-item";
+                div.innerHTML = `<i class="fas fa-exclamation-circle"></i> No services found`;
+                box.appendChild(div);
+                box.style.display = "flex"; 
+            }
+        }
+
+        document.addEventListener('click', function(e) { if (!document.querySelector('.search-container').contains(e.target)) { document.getElementById('suggestionsBox').style.display = 'none'; } });
+        function handleEnter(event) { if (event.key === "Enter") performSearch(); }
+        
+        function performSearch() {
+            let rawInput = document.getElementById('searchInput').value;
+            let q = rawInput.toLowerCase();
+            if (q.includes("elect")) window.location.href = "service.html?service=Electrician";
+            else if (q.includes("plum")) window.location.href = "service.html?service=Plumber";
+            else if (q.includes("paint")) window.location.href = "service.html?service=Painter";
+            else if (q.includes("carp")) window.location.href = "service.html?service=Carpenter";
+            else if (q.includes("ac")) window.location.href = "service.html?service=AC Repair";
+            else if (q.includes("clean")) window.location.href = "service.html?service=Cleaning";
+            else if (q.includes("garden")) window.location.href = "service.html?service=Gardening";
+            else if (q.includes("smart")) window.location.href = "service.html?service=Smart Home";
+            else if (q.includes("secur")) window.location.href = "service.html?service=Home Security";
+            else if (q.includes("interior") || q.includes("decor")) window.location.href = "service.html?service=Interior Decor";
+            else if (q.includes("applianc") || q.includes("fridge") || q.includes("washing")) window.location.href = "service.html?service=Appliances";
+            else { window.location.href = "service.html?service=" + rawInput; }
+        }
+    </script>
+</body>
+</html>

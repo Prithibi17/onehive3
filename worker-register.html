@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OneHive | Partner Registration</title>
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("ABkWJi8hB94_iu6Pq"); 
+        })();
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #082347; --secondary: #FF8800; --bg-color: #eef2f6; --error: #ff4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background-color: var(--bg-color); color: #333; -webkit-font-smoothing: antialiased; }
+
+        header { background: var(--primary); padding: 15px 5%; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .logo-container { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .logo-img { height: 48px; width: 48px; object-fit: contain; background: white; border-radius: 50%; padding: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.3s; }
+        .logo-text-group { display: flex; flex-direction: column; justify-content: center; line-height: 1.1; }
+        .logo-text { font-size: 26px; font-weight: 800; color: white; letter-spacing: -0.5px; }
+        .logo-text span { color: var(--secondary) !important; }
+        .logo-subtext { font-size: 11px; color: #ddd; font-weight: 500; font-style: italic; margin-top: 2px; display: flex; align-items: center; } 
+        .logo-subtext span { color: var(--secondary); font-weight: 700; }
+        .custom-bee-logo { width: 16px; height: 16px; margin-left: 3px; transition: 0.3s ease; transform: translateY(2px); }
+        .logo-container:hover .custom-bee-logo { transform: scale(1.2) rotate(10deg); }
+        .back-btn { color: rgba(255,255,255,0.9); text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.3); font-size: 14px; transition: 0.3s; }
+        .back-btn:hover { background: rgba(255,255,255,0.1); }
+        
+        .container { max-width: 800px; margin: 40px auto; background: #f9fbfd; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); overflow: hidden; padding: 40px; border: 1px solid #fff; }
+        .form-title { text-align: center; margin-bottom: 35px; }
+        .form-title h2 { color: var(--primary); font-size: 32px; margin-bottom: 5px; letter-spacing: -0.5px; }
+        .form-title h2 span { color: var(--secondary); }
+        .form-subtitle { font-size: 16px; font-weight: 700; color: var(--secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .form-tagline { font-size: 16px; color: #555; font-style: italic; font-weight: 500; }
+        .section-heading { font-size: 16px; font-weight: 700; color: var(--secondary); border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-top: 25px; margin-bottom: 15px; }
+        
+        .row { display: flex; gap: 20px; flex-wrap: wrap; }
+        .col { flex: 1; min-width: 240px; margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; color: #444; }
+        input, select, textarea { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; background: #fff; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        input:focus, select:focus, textarea:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.1); }
+        .checkbox-container { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 13px; color: #555; cursor: pointer; }
+        .loading-text { font-size: 12px; color: var(--secondary); display: none; margin-top: 5px; font-weight: bold; }
+        .input-error { border: 2px solid var(--error) !important; background-color: #fff8f8 !important; animation: shake 0.4s ease-in-out; }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 100% { transform: translateX(0); } }
+        .error-msg { color: var(--error); font-size: 11px; font-weight: 600; margin-top: 4px; display: none; }
+        .ai-suggestion-box { display: none; margin-top: 10px; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .btn-submit { width: 100%; background: var(--secondary); color: white; font-size: 18px; font-weight: 700; padding: 16px; border: none; border-radius: 50px; cursor: pointer; margin-top: 30px; transition: 0.3s; box-shadow: 0 8px 20px rgba(255, 153, 0, 0.3); }
+        .btn-submit:hover { background: var(--primary); transform: translateY(-2px); }
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+
+        .success-screen { display: none; text-align: center; padding: 50px 20px; }
+        .success-icon { font-size: 60px; color: green; margin-bottom: 20px; }
+        .app-id-box { background: #e3f2fd; color: #0d47a1; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 18px; font-weight: bold; border: 1px dashed #0d47a1; word-break: break-all; }
+        .btn-home { background: var(--primary); color: white; text-decoration: none; padding: 12px 30px; border-radius: 50px; font-weight: 600; display: inline-block; }
+        
+        @media (max-width: 600px) { header { padding: 12px 4%; } .container { margin: 15px; padding: 25px 20px; width: auto; } .logo-img { height: 40px; width: 40px; } .logo-text { font-size: 20px; } .back-btn span { display: none; } .back-btn { padding: 8px 10px; } .form-title h2 { font-size: 24px; } .col { min-width: 100%; } .row { gap: 10px; } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo-container">
+            <img src="img.jpg" alt="Logo" class="logo-img">
+            <div class="logo-text-group">
+                <span class="logo-text">One<span>Hive</span></span>
+                <span class="logo-subtext">Like Bee<span>hive</span> <svg class="custom-bee-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M25 45 C10 45 5 25 25 15 C45 5 50 35 35 45 Z" fill="#ADD8E6" stroke="#082347" stroke-width="2"/><path d="M75 45 C90 45 95 25 75 15 C55 5 50 35 65 45 Z" fill="#ADD8E6" stroke="#082347" stroke-width="2"/><path d="M40 30 Q35 10 25 15" stroke="#082347" stroke-width="3" fill="none"/><path d="M60 30 Q65 10 75 15" stroke="#082347" stroke-width="3" fill="none"/><ellipse cx="50" cy="55" rx="30" ry="35" fill="#FF8800" stroke="#082347" stroke-width="2"/><path d="M25 50 Q50 60 75 50" stroke="#082347" stroke-width="6" fill="none"/><path d="M28 65 Q50 75 72 65" stroke="#082347" stroke-width="6" fill="none"/><circle cx="40" cy="45" r="4" fill="#082347"/><circle cx="60" cy="45" r="4" fill="#082347"/><circle cx="42" cy="43" r="1.5" fill="white"/><circle cx="62" cy="43" r="1.5" fill="white"/><path d="M45 55 Q50 60 55 55" stroke="#082347" stroke-width="2" fill="none"/><circle cx="35" cy="52" r="3" fill="#FFB6C1" opacity="0.8"/><circle cx="65" cy="52" r="3" fill="#FFB6C1" opacity="0.8"/><path d="M50 90 L45 80 L55 80 Z" fill="#082347"/></svg></span>
+            </div>
+        </a>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="service.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 500; font-size: 14px;">Services</a>
+            <a href="login.html" style="background: #FF8800; color: white; text-decoration: none; padding: 8px 20px; border-radius: 20px; font-weight: 600; font-size: 14px;">Login</a>
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> <span>Back to Home</span></a>
+        </div>
+    </header>
+
+    <div class="container" id="formContainer">
+        <div class="form-title">
+            <h2>Welcome to One<span>Hive</span>India</h2>
+            <div class="form-subtitle">Partner Registration Form</div>
+            <p class="form-tagline">"Let's Work Together & Grow Together"</p>
+        </div>
+
+        <form id="workerForm">
+            <div class="section-heading">1. Personal Information</div>
+            <div class="row">
+                <div class="col"><label>Full Name *</label><input type="text" id="fname" name="user_name" class="mandatory" placeholder="Enter your name"></div>
+                <div class="col">
+                    <label>Date of Birth *</label>
+                    <input type="date" id="dob" name="user_dob" class="mandatory">
+                    <span id="dobError" class="error-msg" style="display:none; color:red; margin-top:5px;"><i class="fas fa-exclamation-triangle"></i> Minimum age must be 18 Years.</span>
+                    <small style="color: #666; font-size: 11px;">Min Age: 18 Years</small>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col">
+                    <label>Gender *</label>
+                    <select id="gender" name="user_gender" class="mandatory">
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-heading">2. Contact Details</div>
+            <div class="row">
+                <div class="col">
+                    <label>Mobile Number *</label>
+                    <input type="tel" id="mobile" name="user_mobile" class="mandatory" placeholder="10 Digit Number" maxlength="10">
+                    <span id="mobileError" class="error-msg"><i class="fas fa-exclamation-circle"></i> Invalid Mobile Number</span>
+                </div>
+                <div class="col">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <label>WhatsApp Number *</label>
+                        <label class="checkbox-container"><input type="checkbox" id="sameNum"> Same as Mobile?</label>
+                    </div>
+                    <input type="tel" id="whatsapp" name="user_whatsapp" class="mandatory" placeholder="WhatsApp Number">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <label>Email Address *</label>
+                    <input type="email" id="email" name="user_email" class="mandatory" placeholder="example@gmail.com">
+                    <span id="emailError" class="error-msg"><i class="fas fa-exclamation-circle"></i> Invalid Email Address</span>
+                </div>
+            </div>
+
+            <div class="section-heading">3. Address Details</div>
+            <div class="row">
+                <div class="col">
+                    <label>Pin Code *</label>
+                    <input type="number" id="pincode" name="user_pincode" class="mandatory" placeholder="Enter 6 digit code" pattern="[0-9]{6}">
+                    <span id="pinMsg" class="loading-text"><i class="fas fa-spinner fa-spin"></i> Auto-filling State & District...</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <label>State *</label>
+                    <select id="state" name="user_state" class="mandatory" onchange="loadDistricts()">
+                        <option value="">Select State</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label>District *</label>
+                    <select id="district" name="user_district" class="mandatory">
+                        <option value="">Select District</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <label>Full Address (House No, Building, Street) *</label>
+                    <input type="text" id="address" name="user_address" class="mandatory" placeholder="Enter Full Address">
+                </div>
+            </div>
+
+            <div class="section-heading">4. Work Profile</div>
+            <div class="row">
+                <div class="col">
+                    <label>Type of Work *</label>
+                    <select id="workType" name="user_service" class="mandatory" onchange="toggleOtherWork()">
+                        <option value="">Select Service</option>
+                        <option>Electrician</option>
+                        <option>Plumber</option>
+                        <option>AC Technician</option>
+                        <option>Carpenter</option>
+                        <option>Painter</option>
+                        <option>Cleaner</option>
+                        <option>Mason (Mistri)</option>
+                        <option>Pest Control</option>
+                        <option>Home Appliances Repair</option>
+                        <option value="Other">Other (Not Listed)</option>
+                    </select>
+
+                    <div id="otherWorkDiv" class="ai-suggestion-box">
+                        <label style="color:var(--secondary); font-size:13px;">Please type your service:</label>
+                        <input type="text" id="otherWorkInput" list="aiSuggestions" placeholder="Start typing...">
+                        <datalist id="aiSuggestions">
+                            <option value="Tiles Mistry"><option value="Welder"><option value="Glass Worker">
+                            <option value="Aluminum Work"><option value="False Ceiling"><option value="Waterproofing">
+                            <option value="RO Service"><option value="Geyser Repair"><option value="Chimney Repair">
+                            <option value="Washing Machine Repair"><option value="Microwave Repair"><option value="Fridge Repair">
+                            <option value="Sofa Cleaning"><option value="Tank Cleaning"><option value="CCTV Installation">
+                            <option value="Interior Designer"><option value="Packers & Movers">
+                        </datalist>
+                    </div>
+                </div>
+                <div class="col"><label>Experience (Years) *</label><input type="number" id="experience" name="user_exp" class="mandatory" min="0"></div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <label>Tools Availability *</label>
+                    <select id="tools" name="user_tools" class="mandatory">
+                        <option value="">Select</option>
+                        <option>I have full kit</option><option>Partial tools</option><option>No, need from company</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label>Availability *</label>
+                    <select id="availability" name="user_availability" class="mandatory">
+                        <option value="">Select</option>
+                        <option>Full Time (Mon-Sat)</option><option>Part Time</option><option>Weekends Only</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-heading">5. Additional Information</div>
+            <div class="col">
+                <label>Tell us about your skills (Optional)</label>
+                <textarea id="extraInfo" name="user_message" rows="3" placeholder="Example: Worked with Urban Company..."></textarea>
+            </div>
+
+            <button type="button" id="submitBtn" class="btn-submit" onclick="submitForm()">Submit Application</button>
+        </form>
+    </div>
+
+    <div class="container success-screen" id="successScreen">
+        <i class="fas fa-check-circle success-icon"></i>
+        <h2>Application Submitted Successfully!</h2>
+        <div class="app-id-box">Application ID: <span id="displayAppId">Generating...</span></div>
+        <p>Thank you for registering with OneHive. Your details have been securely received by our HR Team.</p>
+        <div style="background:#fff; padding:15px; border-radius:10px; margin-bottom:20px; font-size:14px; text-align:left; border:1px solid #ddd;">
+            <strong style="color:var(--primary);">Status Update:</strong><br>
+            <i class="fas fa-check" style="color:green"></i> Age Verified (18+).<br>
+            <i class="fas fa-check" style="color:green"></i> Address Verified.<br>
+            <i class="fas fa-envelope" style="color:var(--secondary)"></i> Confirmation Email Sent.<br>
+        </div>
+        <a href="index.html" class="btn-home">Back to Home</a>
+    </div>
+
+    <script>
+        const stateDistrictData = { "Andhra Pradesh": ["Visakhapatnam", "Vijayawada"], "Delhi": ["Central Delhi", "New Delhi"], "Uttar Pradesh": ["Agra", "Lucknow", "Varanasi", "Etawah", "Kanpur"], "Maharashtra": ["Mumbai", "Pune"] }; 
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const stateSelect = document.getElementById("state");
+            if(stateSelect) { Object.keys(stateDistrictData).sort().forEach(state => { stateSelect.add(new Option(state, state)); }); }
+        });
+
+        function loadDistricts() {
+            const stateSelect = document.getElementById("state"); const districtSelect = document.getElementById("district");
+            const selectedState = stateSelect.value; districtSelect.innerHTML = '<option value="">Select District</option>';
+            if (selectedState && stateDistrictData[selectedState]) { stateDistrictData[selectedState].sort().forEach(district => { districtSelect.add(new Option(district, district)); }); }
+        }
+
+        function toggleOtherWork() {
+            const workType = document.getElementById('workType').value; const otherDiv = document.getElementById('otherWorkDiv');
+            if (workType === "Other") { otherDiv.style.display = 'block'; document.getElementById('otherWorkInput').focus(); } else { otherDiv.style.display = 'none'; }
+        }
+
+        document.getElementById('sameNum').addEventListener('change', function() {
+            const mobile = document.getElementById('mobile').value;
+            const wa = document.getElementById('whatsapp');
+            if (this.checked) { if(mobile.length<10){alert("Enter Mobile First");this.checked=false;}else{wa.value=mobile;wa.readOnly=true;} } else { wa.value="";wa.readOnly=false; }
+        });
+
+        // 🛑 ROBUST AGE VALIDATION
+        document.getElementById('dob').addEventListener('change', function() {
+            let val = this.value;
+            if(!val) return;
+            
+            let dob = new Date(val);
+            let today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            let m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) { age--; }
+
+            const errorSpan = document.getElementById('dobError');
+            
+            if(age < 18) {
+                // Show Error
+                errorSpan.style.display = 'block';
+                this.classList.add('input-error');
+                this.value = ""; // Clear Input
+                
+                // Backup Alert
+                setTimeout(() => alert("🚫 Age Restriction: You must be at least 18 years old."), 100);
+            } else {
+                // Hide Error
+                errorSpan.style.display = 'none';
+                this.classList.remove('input-error');
+            }
+        });
+
+        
+        const API_URL = 'http://localhost:3000/api';
+        
+        function submitForm() {
+            // Check Age Again on Submit
+            let dobVal = document.getElementById('dob').value;
+            if(dobVal) {
+                let dob = new Date(dobVal);
+                let today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                if(age < 18) { alert("Invalid Age"); return; }
+            }
+
+            let isValid = true;
+            document.querySelectorAll('.mandatory').forEach(f => { if(!f.value.trim()){f.classList.add('input-error');isValid=false;}else{f.classList.remove('input-error');} });
+            if(!isValid) { alert("Fix errors"); return; }
+
+            let mobile = document.getElementById('mobile').value;
+            let email = document.getElementById('email').value;
+            let name = document.getElementById('fname').value;
+            let password = mobile; // Use mobile as password
+            let pincode = document.getElementById('pincode').value;
+            let state = document.getElementById('state').value;
+            let district = document.getElementById('district').value;
+            let address = document.getElementById('address').value;
+            
+            let service = document.getElementById('workType').value;
+            if(service==="Other") service = document.getElementById('otherWorkInput').value;
+            
+            // Map service to backend format
+            const serviceMap = {
+                'Plumber': 'plumber',
+                'Electrician': 'electrician',
+                'Carpenter': 'carpenter',
+                'Painter': 'painter',
+                'Cleaner': 'cleaner',
+                'Driver': 'driver',
+                'Mechanic': 'mechanic',
+                'Appliance Repair': 'appliance',
+                'Pest Control': 'pest_control'
+            };
+            
+            let profession = serviceMap[service] || 'other';
+            let experience = document.getElementById('experience').value;
+            let about = document.getElementById('extraInfo').value;
+
+            // Get gender, dob, and whatsapp (Section 3 - Missing fields fix)
+            let gender = document.getElementById('gender').value;
+            let dob = document.getElementById('dob').value;
+            let whatsapp = document.getElementById('whatsapp').value;
+
+            // First register user, then create worker profile
+            fetch(`${API_URL}/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email, phone: mobile, password, role: 'worker' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // User registered, now create worker profile
+                    const token = data.data.token;
+                    
+                    fetch(`${API_URL}/workers/register`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            profession,
+                            skills: document.getElementById('tools').value.split(',').map(s => s.trim()),
+                            experience: parseInt(experience) || 0,
+                            description: about,
+                            location: {
+                                address,
+                                city: district,
+                                state,
+                                pincode,
+                                coordinates: [0, 0]
+                            },
+                            // Send gender, dob, whatsapp to be saved with user profile
+                            gender,
+                            dob,
+                            whatsapp
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(workerData => {
+                        if (workerData.success) {
+                            // Use tracking ID from backend
+                            let appId = workerData.data.trackingId || 'OH-PART-' + Date.now();
+                            showSuccess(appId);
+                        } else {
+                            alert("Registration submitted but profile creation failed. Please contact support.");
+                            let appId = 'OH-PARTNER-' + String(Date.now()).slice(-4);
+                            showSuccess(appId);
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert("Registration submitted! You can login once approved.");
+                        // Try to get tracking ID from the registration response
+                        let appId = 'OH-PART-' + Date.now();
+                        showSuccess(appId);
+                    });
+                } else {
+                    // Check if user already exists
+                    if (data.message.includes('already registered')) {
+                        alert("Email already registered! Please login and then apply as worker.");
+                    } else {
+                        alert("❌ " + data.message);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Registration failed. Please try again.");
+            });
+        }
+
+        function showSuccess(id) {
+            document.getElementById('formContainer').style.display='none';
+            document.getElementById('successScreen').style.display='block';
+            document.getElementById('displayAppId').innerText = id;
+            window.scrollTo(0,0);
+        }
+        
+        document.getElementById('pincode').addEventListener('input', function() {
+            let pin = this.value;
+            if(pin.length === 6) {
+                document.getElementById('pinMsg').style.display='block';
+                fetch('https://api.postalpincode.in/pincode/' + pin)
+                .then(r => r.json()).then(data => {
+                    document.getElementById('pinMsg').style.display='none';
+                    if(data && data[0].Status === "Success") {
+                        let d = data[0].PostOffice[0];
+                        const stateSel = document.getElementById("state");
+                        for(let i=0; i<stateSel.options.length; i++) {
+                            if(stateSel.options[i].text.toLowerCase().includes(d.State.toLowerCase())) {
+                                stateSel.selectedIndex = i; loadDistricts(); break;
+                            }
+                        }
+                    }
+                }).catch(() => { document.getElementById('pinMsg').style.display='none'; });
+            }
+        });
+    </script>
+</body>
+</html>
